@@ -2,16 +2,7 @@ import React from 'react';
 import { Editor, EditorState, RichUtils } from 'draft-js';
 // import io from '../server/index';
 const io = require('socket.io-client');
-
-// Custom Styles
-const styleMap = {
-  STRIKETHROUGH: {
-    textDecoration: 'line-through',
-  },
-  FONTCOLOR: {
-    fontColor: 'red',
-  }
-};
+import FontSizeSelect from './components/fontSizeSelect'
 
 // Components
 
@@ -20,7 +11,7 @@ export default class App extends React.Component {
     super(props);
     this.state = {
       editorState: EditorState.createEmpty(),
-      fontSize: 12,
+      fontSize: 34,
     };
     this.onChange = editorState => this.setState({ editorState });
     this.handleKeyCommand = () => this.handleKeyCommand;
@@ -71,6 +62,19 @@ export default class App extends React.Component {
   }
 
   render() {
+    // Custom Styles
+    const styleMap = {
+      STRIKETHROUGH: {
+        textDecoration: 'line-through',
+      },
+      FONTCOLOR: {
+        fontColor: this.state.color,
+      },
+      FONTSIZE: {
+        fontSize: this.state.fontSize,
+      },
+    };
+
     return (<div>
       <button type="button">Back to Documents Portal</button>
       <br />
@@ -85,12 +89,7 @@ export default class App extends React.Component {
         <button type="button" onClick={() => this.onUnderlineClick()}>
           <underline>U</underline>
         </button>
-        <select onChange={() => this.onFontSizeChange(this.value)}>
-          <option value={8}>8</option>
-          <option value={9}>9</option>
-          <option value={10}>10</option>
-          <option value={12}>12</option>
-        </select>
+        <FontSizeSelect onchange={value => this.onFontSizeChange(value)} />
         <button type="button" onClick={() => this.onStrikeClick()}>Strikethrough</button>
       </div>
       <div style={{ border: '1px red solid' }}>
