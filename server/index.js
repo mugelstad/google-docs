@@ -1,11 +1,12 @@
-import http from 'http';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import passport from 'passport';
-import cookieParser from 'cookie-parser'
+import cookieParser from 'cookie-parser';
 
 // Express setup
-const app = require('express')();
+var app = require('express')();
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 
 // Databased (mlab) setup
 mongoose.connect(process.env.MLAB);
@@ -24,8 +25,8 @@ const User = mongoose.model('User', mongoose.Schema({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(session({ secret: 'keyboard cat' }));
+// app.use(express.static(path.join(__dirname, 'public')));
+// app.use(session({ secret: 'keyboard cat' }));
 
 passport.serializeUser((user, done) => {
   done(null, user._id);
@@ -64,22 +65,15 @@ passport.use(new LocalStrategy((username, password, done) => {
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Socket IO setup
-const server = require('http').Server(app);
-const io = require('socket.io')(server);
 
+// Socket IO setup
 server.listen(8080);
-io.on('connection', (socket) => {
+io.on('connection', function (socket) {
   socket.emit('msg', { hello: 'world' });
-  socket.on('cmd', (data) => {
+  socket.on('cmd', function (data) {
     console.log(data);
   });
 });
 
-// Server Creation
-http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Hello World\n');
-}).listen(1337, '127.0.0.1');
 
-console.log('Server running at http://127.0.0.1:1337/');
+export default io;
