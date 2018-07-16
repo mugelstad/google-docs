@@ -104,14 +104,27 @@ app.post('/newDocument', (req, res) => {
     })
 })
 
-app.get('/document', (req, res) => {
-  Document.findById(req.body.id)
+app.get('/documents', (req, res) => {
+  Document.find()
+    .then((docs) => {
+      res.send(docs)
+    })
+})
+
+app.get('/document/:id', (req, res) => {
+  Document.findById(req.params.id)
     .populate('collaborators')
     .then((doc) => {
-      if (req.body.user in doc.collaborators) {
-        res.json({success:true})
+      // fix this part
+      if (req.user in doc.collaborators) {
+        res.json({success: true, document: doc})
       } else {
         // prompt document password
+        if (req.user.password === doc.password) {
+          res.json({success: true, document: doc})
+        } else {
+          res.json({success:false})
+        }
       }
     })
     .catch((err) => {
@@ -125,7 +138,7 @@ server.listen(8080);
 
 io.on('connection', (socket) => {
   console.log('connected');
-  //
+
   // socket.on('username', username => {
   //   if (!username || !username.trim()) {
   //     return socket.emit('errorMessage', 'No username!');
@@ -133,7 +146,23 @@ io.on('connection', (socket) => {
   //   socket.username = String(username);
   //   passport.authenticate('local', { successFlash: 'Welcome!' })
   // });
-  //
+
+  socket.username = req.user.username;
+
+  socket.on('document', requestedDoc => {
+    if (!requestedDoc) {
+      return socket.emit('errorMessage', 'No room!');
+    }
+    socket.document = requestedDoc;
+    socket.join(requestedDoc, () => {
+      socket.to(requestedRoom).emit('message', {
+        content: `${socket.username} has joined`
+      });
+    });
+  })
+
+
+
   socket.emit('msg', { hello: 'world' });
 
   socket.on('cmd', (data) => {
