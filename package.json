@@ -55,6 +55,7 @@
   },
   "dependencies": {
     "cookie-parser": "^1.4.3",
+    "draft-js": "^0.10.5",
     "draft.js": "^0.2.0",
     "electron-compile": "^6.4.3",
     "electron-devtools-installer": "^2.2.4",
