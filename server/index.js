@@ -4,11 +4,6 @@ import passport from 'passport';
 import cookieParser from 'cookie-parser';
 
 // Express setup
-<<<<<<< HEAD
-var app = require('express')();
-var server = require('http').Server(app);
-var io = require('socket.io')(server);
-=======
 import express from 'express';
 const app = express();
 const path = require('path');
@@ -16,7 +11,7 @@ const path = require('path');
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const session = require('cookie-session');
->>>>>>> backend
+
 
 // Databased (mlab) setup
 var connect = process.env.MLAB;
@@ -75,8 +70,6 @@ passport.use(new LocalStrategy((username, password, done) => {
 app.use(passport.initialize());
 app.use(passport.session());
 
-<<<<<<< HEAD
-=======
 
 app.post('/signup', (req, res) => {
   // if (req.body.password === req.body.passwordRepeat && req.body.username && req.body.password) {
@@ -127,15 +120,9 @@ app.get('/document', (req, res) => {
     })
 })
 
->>>>>>> backend
-
 // Socket IO setup
 server.listen(8080);
-<<<<<<< HEAD
-io.on('connection', function (socket) {
-  socket.emit('msg', { hello: 'world' });
-  socket.on('cmd', function (data) {
-=======
+
 io.on('connection', (socket) => {
   console.log('connected');
   //
@@ -149,11 +136,7 @@ io.on('connection', (socket) => {
   //
   socket.emit('msg', { hello: 'world' });
 
-
-
-
   socket.on('cmd', (data) => {
->>>>>>> backend
     console.log(data);
   });
 });
