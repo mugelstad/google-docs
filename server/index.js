@@ -5,20 +5,26 @@ import passport from 'passport';
 import cookieParser from 'cookie-parser'
 
 // Express setup
-const app = require('express')();
+import express from 'express';
+const app = express();
+const path = require('path');
+// Socket IO setup
+const server = require('http').Server(app);
+const io = require('socket.io')(server);
+const session = require('cookie-session');
 
 // Databased (mlab) setup
-mongoose.connect(process.env.MLAB);
+var connect = process.env.MLAB;
+mongoose.connect(connect);
+
+var models = require('./models/models');
+var User = models.User;
+var Document = models.Document;
 
 // Passport setup
 
 const LocalStrategy = require('passport-local').Strategy;
 
-// Models
-const User = mongoose.model('User', mongoose.Schema({
-  name: String,
-  password: String,
-}));
 
 // set passport middleware to first try local strategy
 app.use(bodyParser.json());
@@ -64,13 +70,74 @@ passport.use(new LocalStrategy((username, password, done) => {
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Socket IO setup
-const server = require('http').Server(app);
-const io = require('socket.io')(server);
+
+app.post('/signup', (req, res) => {
+  // if (req.body.password === req.body.passwordRepeat && req.body.username && req.body.password) {
+  new User({
+    username: req.body.username,
+    password: req.body.password,
+  }).save()
+    .then((user) => {
+      res.json({success: true, id: user._id});
+    })
+    .catch((err) => {
+      console.log("Error in signup: ", err);
+      res.json({success: false})
+    })
+});
+
+app.post('/login', passport.authenticate('local'), (req, res) => {
+  console.log('LOGIN: ', req.user)
+  res.json({success: true});
+});
+
+app.post('/newDocument', (req, res) => {
+  new Document({
+    title: req.body.title,
+    password: req.body.password
+  }).save()
+    .then((doc) => {
+      res.json({success: true, id: doc._id})
+    })
+    .catch((err) => {
+      res.json({success: false})
+    })
+})
+
+app.get('/document', (req, res) => {
+  Document.findById(req.body.id)
+    .populate('collaborators')
+    .then((doc) => {
+      if (req.body.user in doc.collaborators) {
+        res.json({success:true})
+      } else {
+        // prompt document password
+      }
+    })
+    .catch((err) => {
+      console.log("ERROR in loading a doc: ", err)
+      res.json({success:false})
+    })
+})
+
 
 server.listen(8080);
 io.on('connection', (socket) => {
+  console.log('connected');
+  //
+  // socket.on('username', username => {
+  //   if (!username || !username.trim()) {
+  //     return socket.emit('errorMessage', 'No username!');
+  //   }
+  //   socket.username = String(username);
+  //   passport.authenticate('local', { successFlash: 'Welcome!' })
+  // });
+  //
   socket.emit('msg', { hello: 'world' });
+
+
+
+
   socket.on('cmd', (data) => {
     console.log(data);
   });
