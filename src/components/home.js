@@ -1,8 +1,8 @@
 
 import React from 'react';
 
-import Signup from 'signup';
-import Login from 'login';
+import Signup from './signup';
+import Login from './login';
 
 export default class Home extends React.Component {
 
@@ -23,7 +23,7 @@ export default class Home extends React.Component {
     return (
       <div>
         {this.state.signup ? <Signup toggle={() => this.toggle()} />
-        : <Login toggle={() => this.toggle()} />}
+        : <Login toggle={() => this.toggle()} toDoc={() => this.props.toDoc()} />}
       </div>
     )
   }

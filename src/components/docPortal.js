@@ -67,7 +67,7 @@ export default class DocPortal extends React.Component {
 
         <div>
           {this.state.documents.map((doc) =>{
-            <p>{doc.title}</p>
+            <span><a onClick={() => this.props.toggle()}>{doc.title}</a></span>
           })}
         </div>
 

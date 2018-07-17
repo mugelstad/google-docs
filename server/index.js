@@ -70,14 +70,17 @@ passport.use(new LocalStrategy((username, password, done) => {
 app.use(passport.initialize());
 app.use(passport.session());
 
+var url = 'http://localhost:8080'
 
 app.post('/signup', (req, res) => {
   // if (req.body.password === req.body.passwordRepeat && req.body.username && req.body.password) {
+  console.log("USER: ", req.body);
   new User({
     username: req.body.username,
     password: req.body.password,
   }).save()
     .then((user) => {
+      console.log("User:", user);
       res.json({success: true, id: user._id});
     })
     .catch((err) => {
@@ -136,6 +139,10 @@ app.get('/document/:id', (req, res) => {
 // Socket IO setup
 server.listen(8080);
 
+var limit = 6;
+var colors = ['red', 'blue', 'yellow', 'black', 'green', 'white'];
+var color;
+
 io.on('connection', (socket) => {
   console.log('connected');
 
@@ -147,19 +154,27 @@ io.on('connection', (socket) => {
   //   passport.authenticate('local', { successFlash: 'Welcome!' })
   // });
 
-  socket.username = req.user.username;
+  // socket.username = req.user.username;
 
-  socket.on('document', requestedDoc => {
-    if (!requestedDoc) {
-      return socket.emit('errorMessage', 'No room!');
-    }
-    socket.document = requestedDoc;
-    socket.join(requestedDoc, () => {
-      socket.to(requestedRoom).emit('message', {
-        content: `${socket.username} has joined`
-      });
-    });
-  })
+  // socket.on('document', requestedDoc => {
+  //   if (!requestedDoc) {
+  //     return socket.emit('errorMessage', 'No room!');
+  //   }
+  //   if (limit === 0) {
+  //     return socket.emit('errorMessage', 'The document cannot support more than 6 editors');
+  //   }
+  //   socket.document = requestedDoc;
+  //   socket.join(requestedDoc, () => {
+  //     socket.to(requestedRoom).emit('message', {
+  //       content: `${socket.username} has joined`
+  //     });
+  //     color = colors.pop();
+  //     limit --;
+  //     socket.emit('color', color)
+  //
+  //   });
+  // })
+
 
 
 

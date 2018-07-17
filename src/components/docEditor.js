@@ -67,17 +67,11 @@ export default class DocEditor extends React.Component {
     return 'not-handled';
   }
 
-  docsPortal(){
-    this.setState({docPortal: true})
-  }
-
   render() {
     console.log('portal: ', this.state.docPortal);
     return (
       <div>
-      {this.state.docPortal ? <DocPortal/> :
-        <div>
-        <button type="button" onClick={() => this.docsPortal()}>Back to Documents Portal</button>
+        <button type="button" onClick={() => this.props.toggle()}>Back to Documents Portal</button>
         <br />
         <h2>Sample Document</h2>
         <br />
@@ -96,8 +90,7 @@ export default class DocEditor extends React.Component {
             handleKeyCommand={this.handleKeyCommand}
           />
         </div>
-      </div>}
-    </div>
+      </div>
     );
   }
 }

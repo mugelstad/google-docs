@@ -4,12 +4,15 @@ import { Editor, EditorState, RichUtils } from 'draft-js';
 const io = require('socket.io-client');
 
 // Components
+import Doc from './components/doc';
+import Home from './components/home';
 
 export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       editorState: EditorState.createEmpty(),
+      home: true
     };
     this.onChange = editorState => this.setState({ editorState });
     this.handleKeyCommand = () => this.handleKeyCommand;
@@ -42,27 +45,19 @@ export default class App extends React.Component {
     return 'not-handled';
   }
 
-  render() {
-    return (<div>
-      <button type="button">Back to Documents Portal</button>
-      <br />
-      <h2>Sample Document</h2>
-      <br />
-      <p>Shareable Document ID:</p>
-      <button type="button">Save Changes</button>
+  toDoc() {
+    this.setState({
+      home: !this.state.home
+    })
+  }
 
+  render() {
+    return (
       <div>
-        <button type="button" onClick={() => this.onBoldClick()}><bold>B</bold></button>
-        <button type="button" onClick={() => this.onItalicsClick()}><i>I</i></button>
-        <button type="button">Custom</button>
+        {this.state.home ? <Home toDoc={() => this.toDoc()}/> :
+          <Doc />
+        }
       </div>
-      <div style={{ border: '1px red solid' }}>
-        <Editor
-          editorState={this.state.editorState}
-          onChange={this.onChange}
-          handleKeyCommand={this.handleKeyCommand}
-        />
-      </div>
-    </div>);
+    );
   }
 }

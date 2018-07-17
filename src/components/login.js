@@ -25,7 +25,7 @@ export default class Login extends React.Component {
 
   handleSubmit(e) {
     e.preventDefault();
-    fetch('/login', {
+    fetch('http://localhost:8080/login', {
       method: 'POST',
       headers: {
         "Content-Type": "application/json"
@@ -39,7 +39,7 @@ export default class Login extends React.Component {
     .then((responseJson) => {
       if (responseJson.success) {
         console.log("Successfully logged in");
-        // this.props.toPortal();
+        this.props.toDoc();
       }
     })
     .catch((err) => {
