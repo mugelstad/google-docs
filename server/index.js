@@ -178,9 +178,7 @@ io.on('connection', (socket) => {
       socket.emit('color', color);
     });
   })
-
-  })
-
+  
   // color
   socket.emit('color', color)
 

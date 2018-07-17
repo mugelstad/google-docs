@@ -7,15 +7,7 @@ const io = require('socket.io-client');
 import DocPortal from './docPortal'
 // Components
 import ToolBar from './toolbar';
-<<<<<<< HEAD
 import styleMap from './stylemap';
-
-// import io from '../server/index';
-const io = require('socket.io-client');
-=======
-// Custom Styles
-import styleMap from './stylemap';
->>>>>>> 1097866c097bfff9b28fb16e32c8553f3f4fc833
 
 // Components
 export default class DocEditor extends React.Component {
@@ -89,33 +81,20 @@ export default class DocEditor extends React.Component {
     this.onChange(RichUtils.toggleInlineStyle(this.state.editorState, value));
   }
 
-  alignEdit(value) {
-    this.setState({ align: value });
-  }
-
   toggleBlock(value) {
     this.onChange(RichUtils.toggleBlockType(this.state.editorState, value));
   }
 
-  alignLeft(){
+  myBlockStyleFn(contentBlock){
     const type = contentBlock.getType();
-    if (type === 'blockquote') {
-      return 'leftAligned';
-    }
+    if (type === 'right') return 'rightAligned'
+     else if (type === 'left') return 'leftAligned'
+     else if (type === 'center') return 'centeredContent'
+     else if (type === 'justify') return 'justify'
   }
 
-  alignRight(){
-    const type = contentBlock.getType();
-    if (type === 'blockquote') {
-      return 'rightAligned';
-    }
-  }
-
-  alignCenter(contentBlock){
-    const type = contentBlock.getType();
-    if (type === 'blockquote') {
-      return 'centeredContent';
-    }
+  toggleBlockType(blockType){
+    this.onChange(RichUtils.toggleBlockType(this.state.editorState, blockType))
   }
 
   handleKeyCommand(command, editorState) {
@@ -135,11 +114,12 @@ export default class DocEditor extends React.Component {
     this.setState({
       editorState,
     })
-    selectedText.applyInlineStyle({
-      contentState: currentContent,
-      selectionState: selectionState,
-      inlineStyle: `backgroundColor: ${this.state.myColor}`
-    })
+
+    // selectedText.applyInlineStyle({
+    //   contentState: currentContent,
+    //   selectionState: selectionState,
+    //   inlineStyle: `backgroundColor: ${this.state.myColor}`
+    // })
 
   }
 
@@ -156,16 +136,18 @@ export default class DocEditor extends React.Component {
         <div>
           <ToolBar
             edit={value => this.makeEdit(value)}
-            alignEdits={value => this.alignEdit(value)}
+            toggleBlockType={value => this.toggleBlockType(value)}
             blockEdit={value => this.toggleBlock(value)}
           />
         </div>
         <div style={{ border: '1px red solid', textAlign: this.state.align }}>
           <Editor
+            textAlignment='right'
             editorState={this.state.editorState}
             onChange={this.onChange.bind(this)}
             handleKeyCommand={this.handleKeyCommand}
             customStyleMap={styleMap}
+            blockStyleFn={this.myBlockStyleFn}
           />
         </div>
       </div>

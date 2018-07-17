@@ -2,6 +2,7 @@ import React from 'react';
 import { ButtonGroup, Button, ButtonToolbar, Glyphicon } from 'react-bootstrap';
 import FontSizeSelect from './fontSizeSelect';
 import FontColourSelect from './fontColourSelect';
+import { EditorState, RichUtils } from 'draft-js';
 
 
 // Components
@@ -32,22 +33,22 @@ export default class ToolBar extends React.Component {
               <underline>U</underline>
             </Button>
             <Button onClick={() => this.props.edit('STRIKETHROUGH')}>Strikethrough</Button>
-            <Button onClick={() => this.props.alignEdits('left')}>
+            <Button onClick={() => this.props.toggleBlockType('left')}>
               <Glyphicon glyph="align-left" />
             </Button>
-            <Button onClick={() => this.props.alignEdits('center')}>
+            <Button onClick={() => this.props.toggleBlockType('center')}>
               <Glyphicon glyph="align-center" />
             </Button>
-            <Button onClick={() => this.props.alignEdits('right')}>
+            <Button onClick={() => this.props.toggleBlockType('right')}>
               <Glyphicon glyph="align-right" />
             </Button>
-            <Button onClick={() => this.props.alignEdits('justify')}>
+            <Button onClick={() => this.props.toggleBlockType('justify')}>
               <Glyphicon glyph="align-justify" />
             </Button>
-            <Button onClick={() => this.props.blockEdit('unordered-list-item')}>
+            <Button onClick={() => this.props.toggleBlockType('unordered-list-item')}>
               <Glyphicon glyph="th-list" />
             </Button>
-            <Button onClick={() => this.props.blockEdit('ordered-list-item')}>
+            <Button onClick={() => this.props.toggleBlockType('ordered-list-item')}>
               <Glyphicon glyph="sort-by-order" />
             </Button>
           </ButtonGroup>
