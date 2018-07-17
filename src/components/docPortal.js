@@ -92,7 +92,7 @@ export default class DocPortal extends React.Component {
   //
   // }
 
-  toggle(id) {
+  toggle() {
     this.setState({ docPortal: !this.state.docPortal })
   }
 

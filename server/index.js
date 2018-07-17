@@ -170,13 +170,12 @@ io.on('connection', (socket) => {
     }
 
     socket.join(requestedDoc, () => {
-      console.log(requestedDoc);
       socket.to(requestedDoc).emit('message', {
         content: `${socket.username} has joined`
       });
       color = colors.pop();
       limit--;
-      socket.emit('color', color)
+      socket.emit('color', color);
     });
   })
 
