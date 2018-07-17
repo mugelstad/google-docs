@@ -32,7 +32,7 @@ export default class ToolBar extends React.Component {
               <underline>U</underline>
             </Button>
             <Button onClick={() => this.props.edit('STRIKETHROUGH')}>Strikethrough</Button>
-            <Button onClick={() => this.props.blockEdit('left')}>
+            <Button onClick={() => this.props.alignEdits('left')}>
               <Glyphicon glyph="align-left" />
             </Button>
             <Button onClick={() => this.props.alignEdits('center')}>

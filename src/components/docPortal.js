@@ -1,6 +1,9 @@
 import React from 'react';
 import { EditorState } from 'draft-js';
 
+// Components
+import DocEditor from './docEditor';
+
 const prompt = require('electron-prompt');
 
 

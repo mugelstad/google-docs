@@ -1,17 +1,19 @@
 import React from 'react';
 import { Editor, EditorState, RichUtils } from 'draft-js';
+
+// Components
+import ToolBar from './toolbar';
+import DocPortal from './docPortal';
+
 // import io from '../server/index';
 const io = require('socket.io-client');
 
-import DocPortal from './docPortal'
-
-// Components
 export default class DocEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       editorState: EditorState.createEmpty(),
-      docPortal: false
+      docPortal: false,
     };
     this.onChange = editorState => this.setState({ editorState });
     this.handleKeyCommand = () => this.handleKeyCommand;
@@ -22,7 +24,7 @@ export default class DocEditor extends React.Component {
     socket.on('connect', () => {
       console.log('ws connect');
 
-      //call in document portal front-end side
+      // call in document portal front-end side
       // fetch('/document/' + docId, {
       //   method: 'GET'
       // }).then((response) => response.json())
@@ -50,12 +52,17 @@ export default class DocEditor extends React.Component {
     });
   }
 
-  onBoldClick() {
-    this.onChange(RichUtils.toggleInlineStyle(this.state.editorState, 'BOLD'));
+  // Funtions
+  makeEdit(value) {
+    this.onChange(RichUtils.toggleInlineStyle(this.state.editorState, value));
   }
 
-  onItalicsClick() {
-    this.onChange(RichUtils.toggleInlineStyle(this.state.editorState, 'ITALIC'));
+  alignEdit(value) {
+    this.setState({ align: value });
+  }
+
+  toggleBlock(value) {
+    this.onChange(RichUtils.toggleBlockType(this.state.editorState, value));
   }
 
   handleKeyCommand(command, editorState) {
@@ -77,13 +84,14 @@ export default class DocEditor extends React.Component {
         <br />
         <p>Shareable Document ID:</p>
         <button type="button">Save Changes</button>
-
         <div>
-          <button type="button" onClick={() => this.onBoldClick()}><bold>B</bold></button>
-          <button type="button" onClick={() => this.onItalicsClick()}><i>I</i></button>
-          <button type="button">Custom</button>
+          <ToolBar
+            edit={value => this.makeEdit(value)}
+            alignEdits={value => this.alignEdit(value)}
+            blockEdit={value => this.toggleBlock(value)}
+          />
         </div>
-        <div style={{ border: '1px red solid' }}>
+        <div style={{ border: '1px red solid', textAlign: this.state.align }}>
           <Editor
             editorState={this.state.editorState}
             onChange={this.onChange}
