@@ -1,7 +1,7 @@
 import React from 'react';
 import { EditorState } from 'draft-js';
 
-const prompt = require('electron-prompt');
+// const prompt = require('electron-prompt');
 
 
 export default class DocPortal extends React.Component {

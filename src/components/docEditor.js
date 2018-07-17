@@ -71,23 +71,25 @@ export default class DocEditor extends React.Component {
     console.log('portal: ', this.state.docPortal);
     return (
       <div>
-        <button type="button" onClick={() => this.props.toggle()}>Back to Documents Portal</button>
+        <button type="button">Back to Documents Portal</button>
         <br />
         <h2>Sample Document</h2>
         <br />
         <p>Shareable Document ID:</p>
         <button type="button">Save Changes</button>
-
         <div>
-          <button type="button" onClick={() => this.onBoldClick()}><bold>B</bold></button>
-          <button type="button" onClick={() => this.onItalicsClick()}><i>I</i></button>
-          <button type="button">Custom</button>
+          <ToolBar
+            edit={value => this.makeEdit(value)}
+            alignEdits={value => this.alignEdit(value)}
+            blockEdit={value => this.toggleBlock(value)}
+          />
         </div>
-        <div style={{ border: '1px red solid' }}>
+        <div style={{ border: '1px red solid', textAlign: this.state.align }}>
           <Editor
             editorState={this.state.editorState}
             onChange={this.onChange}
             handleKeyCommand={this.handleKeyCommand}
+            customStyleMap={styleMap}
           />
         </div>
       </div>
