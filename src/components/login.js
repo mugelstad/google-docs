@@ -54,6 +54,8 @@ export default class Login extends React.Component {
         })
         localStorage.setItem('user', user);
         this.props.toDoc();
+      } else {
+        console.log("No username!");
       }
     })
     .catch((err) => {

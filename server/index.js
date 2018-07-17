@@ -75,18 +75,23 @@ var url = 'http://localhost:8080'
 app.post('/signup', (req, res) => {
   // if (req.body.password === req.body.passwordRepeat && req.body.username && req.body.password) {
   console.log("USER: ", req.body);
-  new User({
-    username: req.body.username,
-    password: req.body.password,
-  }).save()
-    .then((user) => {
-      console.log("User:", user);
-      res.json({success: true, id: user._id});
-    })
-    .catch((err) => {
-      console.log("Error in signup: ", err);
-      res.json({success: false})
-    })
+  if (req.body.username && req.body.password) {
+    new User({
+      username: req.body.username,
+      password: req.body.password,
+    }).save()
+      .then((user) => {
+        console.log("User:", user);
+        res.json({success: true, id: user._id});
+      })
+      .catch((err) => {
+        console.log("Error in signup: ", err);
+        res.json({success: false})
+      })
+  } else {
+    console.log("No username or password");
+    res.json({success: false})
+  }
 });
 
 app.post('/login', passport.authenticate('local'), (req, res) => {
