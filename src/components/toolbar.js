@@ -32,17 +32,23 @@ export default class ToolBar extends React.Component {
               <underline>U</underline>
             </Button>
             <Button onClick={() => this.props.edit('STRIKETHROUGH')}>Strikethrough</Button>
-            <Button onClick={() => this.props.edit('LEFT')}>
+            <Button onClick={() => this.props.blockEdit('left')}>
               <Glyphicon glyph="align-left" />
             </Button>
-            <Button onClick={() => this.props.edit('CENTER')}>
+            <Button onClick={() => this.props.alignEdits('center')}>
               <Glyphicon glyph="align-center" />
             </Button>
-            <Button onClick={() => this.props.edit('RIGHT')}>
+            <Button onClick={() => this.props.alignEdits('right')}>
               <Glyphicon glyph="align-right" />
             </Button>
-            <Button>
+            <Button onClick={() => this.props.alignEdits('justify')}>
               <Glyphicon glyph="align-justify" />
+            </Button>
+            <Button onClick={() => this.props.blockEdit('unordered-list-item')}>
+              <Glyphicon glyph="th-list" />
+            </Button>
+            <Button onClick={() => this.props.blockEdit('ordered-list-item')}>
+              <Glyphicon glyph="sort-by-order" />
             </Button>
           </ButtonGroup>
         </ButtonToolbar>

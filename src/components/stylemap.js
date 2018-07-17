@@ -83,6 +83,16 @@ const styleMap = {
   ALIGNRIGHT: {
     textAlign: 'right',
   },
+  BULLETLIST: {
+    display: 'list-item',
+    listStyleType: 'disc',
+    listStylePosition: 'inside',
+  },
+  NUMBERLIST: {
+    display: 'list-item',
+    listStyleType: 'decimal',
+    listStylePosition: 'inside',
+  },
 };
 
 export default styleMap;

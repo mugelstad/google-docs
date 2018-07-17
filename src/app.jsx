@@ -16,7 +16,7 @@ export default class App extends React.Component {
       editorState: EditorState.createEmpty(),
       fontSize: 34,
       fontColor: 'black',
-      textAlignment: 'right',
+      textAlignment: 'left',
     };
     this.onChange = editorState => this.setState({ editorState });
     this.handleKeyCommand = () => this.handleKeyCommand;
@@ -37,6 +37,14 @@ export default class App extends React.Component {
     this.onChange(RichUtils.toggleInlineStyle(this.state.editorState, value));
   }
 
+  alignEdit(value) {
+    this.setState({ align: value });
+  }
+
+  toggleBlock(value) {
+    this.onChange(RichUtils.toggleBlockType(this.state.editorState, value));
+  }
+
   handleKeyCommand(command, editorState) {
     const newState = RichUtils.handleKeyCommand(editorState, command);
     if (newState) {
@@ -48,7 +56,6 @@ export default class App extends React.Component {
 
   render() {
     // Custom Styles
-
     return (<div>
       <button type="button">Back to Documents Portal</button>
       <br />
@@ -58,9 +65,13 @@ export default class App extends React.Component {
       <button type="button">Save Changes</button>
 
       <div>
-        <ToolBar edit={value => this.makeEdit(value)} />
+        <ToolBar
+          edit={value => this.makeEdit(value)}
+          alignEdits={value => this.alignEdit(value)}
+          blockEdit={value => this.toggleBlock(value)}
+        />
       </div>
-      <div style={{ border: '1px red solid' }}>
+      <div style={{ border: '1px red solid', textAlign: this.state.align }}>
         <Editor
           editorState={this.state.editorState}
           onChange={this.onChange}
