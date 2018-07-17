@@ -39,11 +39,12 @@ export default class App extends React.Component {
   }
 
   render() {
-    return (<div>
-      {this.state.home ? <Home toDoc={() => this.toDoc()} /> :
-      <DocPortal />
-          }
-    </div>
+    return (
+      <div>
+        {this.state.home ? <Home toDoc={() => this.toDoc()} /> :
+        <DocPortal />
+            }
+      </div>
     );
   }
 }

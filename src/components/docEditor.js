@@ -78,7 +78,7 @@ export default class DocEditor extends React.Component {
     console.log('portal: ', this.state.docPortal);
     return (
       <div>
-        <button type="button" onClick={() => this.props.toggle()}>Back to Documents Portal</button>
+        <button type="button">Back to Documents Portal</button>
         <br />
         <h2>Sample Document</h2>
         <br />
@@ -96,6 +96,7 @@ export default class DocEditor extends React.Component {
             editorState={this.state.editorState}
             onChange={this.onChange}
             handleKeyCommand={this.handleKeyCommand}
+            customStyleMap={styleMap}
           />
         </div>
       </div>
