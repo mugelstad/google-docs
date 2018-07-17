@@ -2,10 +2,6 @@ import React from 'react';
 import { Editor, EditorState, RichUtils } from 'draft-js';
 // import io from '../server/index';
 
-// Components
-import ToolBar from './components/toolbar';
-// Custom Styles
-import styleMap from './components/stylemap';
 
 // import io from '../server/index';
 const io = require('socket.io-client');
@@ -28,13 +24,13 @@ export default class App extends React.Component {
   }
 
   componentDidMount() {
-    const socket = io('http://127.0.0.1:8080');
-    socket.on('connect', () => { console.log('ws connect'); });
-    socket.on('disconnect', () => { console.log('ws disconnect'); });
-    socket.on('msg', (data) => {
-      console.log('ws msg:', data);
-      socket.emit('cmd', { foo: 123 });
-    });
+    // const socket = io('http://127.0.0.1:8080');
+    // socket.on('connect', () => { console.log('ws connect'); });
+    // socket.on('disconnect', () => { console.log('ws disconnect'); });
+    // socket.on('msg', (data) => {
+    //   console.log('ws msg:', data);
+    //   socket.emit('cmd', { foo: 123 });
+    // });
   }
 
   // Funtions
