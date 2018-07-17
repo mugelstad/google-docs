@@ -5,6 +5,7 @@ import { Editor, EditorState, RichUtils } from 'draft-js';
 const io = require('socket.io-client');
 
 // Components
+<<<<<<< HEAD
 =======
 
 // Components
@@ -15,18 +16,23 @@ import styleMap from './components/stylemap';
 // import io from '../server/index';
 const io = require('socket.io-client');
 >>>>>>> editor-view
+=======
+// import Doc from './components/doc';
+import DocPortal from './components/docPortal';
+import Home from './components/home';
+>>>>>>> ea8d38d8056fd201ff41a2bc79495cab86957fba
 
 export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       editorState: EditorState.createEmpty(),
-<<<<<<< HEAD
-=======
       fontSize: 34,
       fontColor: 'black',
       textAlignment: 'left',
->>>>>>> editor-view
+=======
+      home: true
+>>>>>>> ea8d38d8056fd201ff41a2bc79495cab86957fba
     };
     this.onChange = editorState => this.setState({ editorState });
     this.handleKeyCommand = () => this.handleKeyCommand;
@@ -64,42 +70,40 @@ export default class App extends React.Component {
     return 'not-handled';
   }
 
-  render() {
-    // Custom Styles
-    return (<div>
-      <button type="button">Back to Documents Portal</button>
-      <br />
-      <h2>Sample Document</h2>
-      <br />
-      <p>Shareable Document ID:</p>
-      <button type="button">Save Changes</button>
+  toDoc() {
+    this.setState({
+      home: !this.state.home
+    })
+  }
 
-      <div>
-<<<<<<< HEAD
-        <button type="button" onClick={() => this.onBoldClick()}><bold>B</bold></button>
-        <button type="button" onClick={() => this.onItalicsClick()}><i>I</i></button>
-        <button type="button">Custom</button>
+  render() {
+      return (<div>
+        <button type="button">Back to Documents Portal</button>
+        <br />
+        <h2>Sample Document</h2>
+        <br />
+        <p>Shareable Document ID:</p>
+        <button type="button">Save Changes</button>
+        <div>
+          <ToolBar
+            edit={value => this.makeEdit(value)}
+            alignEdits={value => this.alignEdit(value)}
+            blockEdit={value => this.toggleBlock(value)}
+          />
+        </div>
+        <div style={{ border: '1px red solid', textAlign: this.state.align }}>
+          <Editor
+            editorState={this.state.editorState}
+            onChange={this.onChange}
+            handleKeyCommand={this.handleKeyCommand}
+            customStyleMap={styleMap}
+          />
+  =======
+          {this.state.home ? <Home toDoc={() => this.toDoc()}/> :
+            <DocPortal />
+          }
+>>>>>>> ea8d38d8056fd201ff41a2bc79495cab86957fba
       </div>
-      <div style={{ border: '1px red solid' }}>
-=======
-        <ToolBar
-          edit={value => this.makeEdit(value)}
-          alignEdits={value => this.alignEdit(value)}
-          blockEdit={value => this.toggleBlock(value)}
-        />
-      </div>
-      <div style={{ border: '1px red solid', textAlign: this.state.align }}>
->>>>>>> editor-view
-        <Editor
-          editorState={this.state.editorState}
-          onChange={this.onChange}
-          handleKeyCommand={this.handleKeyCommand}
-<<<<<<< HEAD
-=======
-          customStyleMap={styleMap}
->>>>>>> editor-view
-        />
-      </div>
-    </div>);
+    );
   }
 }
