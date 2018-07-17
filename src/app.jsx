@@ -1,10 +1,13 @@
 import React from 'react';
 import { Editor, EditorState, RichUtils } from 'draft-js';
-// import io from '../server/index';
-const io = require('socket.io-client');
-import FontSizeSelect from './components/fontSizeSelect'
 
 // Components
+import ToolBar from './components/toolbar';
+// Custom Styles
+import styleMap from './components/stylemap';
+
+// import io from '../server/index';
+const io = require('socket.io-client');
 
 export default class App extends React.Component {
   constructor(props) {
@@ -12,6 +15,8 @@ export default class App extends React.Component {
     this.state = {
       editorState: EditorState.createEmpty(),
       fontSize: 34,
+      fontColor: 'black',
+      textAlignment: 'right',
     };
     this.onChange = editorState => this.setState({ editorState });
     this.handleKeyCommand = () => this.handleKeyCommand;
@@ -27,29 +32,9 @@ export default class App extends React.Component {
     });
   }
 
-  // Custom editor functions
-
   // Funtions
-
-  onBoldClick() {
-    this.onChange(RichUtils.toggleInlineStyle(this.state.editorState, 'BOLD'));
-  }
-
-  onItalicsClick() {
-    this.onChange(RichUtils.toggleInlineStyle(this.state.editorState, 'ITALIC'));
-  }
-
-  onUnderlineClick() {
-    this.onChange(RichUtils.toggleInlineStyle(this.state.editorState, 'UNDERLINE'));
-  }
-
-  onStrikeClick() {
-    this.onChange(RichUtils.toggleInlineStyle(this.state.editorState, 'STRIKETHROUGH'));
-  }
-
-  onFontSizeChange(value) {
-    this.setState({ fontSize: value });
-    this.onChange(RichUtils.toggleInlineStyle(this.state.editorState, 'FONTSIZE'));
+  makeEdit(value) {
+    this.onChange(RichUtils.toggleInlineStyle(this.state.editorState, value));
   }
 
   handleKeyCommand(command, editorState) {
@@ -63,17 +48,6 @@ export default class App extends React.Component {
 
   render() {
     // Custom Styles
-    const styleMap = {
-      STRIKETHROUGH: {
-        textDecoration: 'line-through',
-      },
-      FONTCOLOR: {
-        fontColor: this.state.color,
-      },
-      FONTSIZE: {
-        fontSize: this.state.fontSize,
-      },
-    };
 
     return (<div>
       <button type="button">Back to Documents Portal</button>
@@ -84,13 +58,7 @@ export default class App extends React.Component {
       <button type="button">Save Changes</button>
 
       <div>
-        <button type="button" onClick={() => this.onBoldClick()}><bold>B</bold></button>
-        <button type="button" onClick={() => this.onItalicsClick()}><i>I</i></button>
-        <button type="button" onClick={() => this.onUnderlineClick()}>
-          <underline>U</underline>
-        </button>
-        <FontSizeSelect onchange={value => this.onFontSizeChange(value)} />
-        <button type="button" onClick={() => this.onStrikeClick()}>Strikethrough</button>
+        <ToolBar edit={value => this.makeEdit(value)} />
       </div>
       <div style={{ border: '1px red solid' }}>
         <Editor

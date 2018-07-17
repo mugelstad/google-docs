@@ -7,9 +7,9 @@ export default class FontColourSelect extends React.Component {
 
   render() {
     return (<div style={{ display: 'inline' }}>
-      <select onChange={() => this.props.onchange(this.value)}>
+      <select onChange={e => this.props.edit(e.target.value)}>
         <option value="red">Red</option>
-        <option value=" blue">Blue</option>
+        <option value="blue">Blue</option>
         <option value="green">Green</option>
         <option value="yellow">Yellow</option>
         <option value="purple">Purple</option>
