@@ -1,9 +1,7 @@
 import React from 'react';
 import { EditorState } from 'draft-js';
 
-const app = require('express')();
-const server = require('http').Server(app);
-const io = require('socket.io')(server);
+const prompt = require('electron-prompt');
 
 
 export default class DocPortal extends React.Component {
@@ -13,15 +11,15 @@ export default class DocPortal extends React.Component {
       editorState: EditorState.createEmpty(),
       documents: [],
       title: '',
-      password: '',
       docPortal: true,
     };
     this.onChange = editorState => this.setState({ editorState })
   }
   componentDidMount() {
     fetch('/documents', {
-
+      method: 'GET'
     }).then((docs) => {
+      console.log("DOCS: ", docs);
       this.setState({
         documents: docs
       })
@@ -55,7 +53,8 @@ export default class DocPortal extends React.Component {
 
   onCreate(){
     // prompt password
-
+    var password = prompt('Enter password');
+    console.log("PASSWORD: ", password);
     fetch('http://localhost:8080/newDocument', {
       method: 'POST',
       headers: {
@@ -63,7 +62,7 @@ export default class DocPortal extends React.Component {
       },
       body: JSON.stringify({
         title: this.state.title,
-        password: this.state.password
+        password: password
       })
     })
     .then((response) => response.json())
@@ -96,9 +95,9 @@ export default class DocPortal extends React.Component {
           <button onClick={() => this.onCreate()}>Create Document</button>
 
           <div>
-            {this.state.documents.map((doc) =>
+            {/* {this.state.documents.map((doc) =>
               <span><a onClick={() => this.toggle()}>{doc.title}</a></span>
-            )}
+            )} */}
           </div>
 
           <input type='text' placeholder='pase a doc id shared with you'></input>
