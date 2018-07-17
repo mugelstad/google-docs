@@ -4,9 +4,9 @@ import passport from 'passport';
 import cookieParser from 'cookie-parser';
 
 // Express setup
-var app = require('express')();
-var server = require('http').Server(app);
-var io = require('socket.io')(server);
+const app = require('express')();
+const server = require('http').Server(app);
+const io = require('socket.io')(server);
 
 // Databased (mlab) setup
 mongoose.connect(process.env.MLAB);
@@ -25,8 +25,6 @@ const User = mongoose.model('User', mongoose.Schema({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-// app.use(express.static(path.join(__dirname, 'public')));
-// app.use(session({ secret: 'keyboard cat' }));
 
 passport.serializeUser((user, done) => {
   done(null, user._id);
@@ -68,9 +66,9 @@ app.use(passport.session());
 
 // Socket IO setup
 server.listen(8080);
-io.on('connection', function (socket) {
+io.on('connection', (socket) => {
   socket.emit('msg', { hello: 'world' });
-  socket.on('cmd', function (data) {
+  socket.on('cmd', (data) => {
     console.log(data);
   });
 });
