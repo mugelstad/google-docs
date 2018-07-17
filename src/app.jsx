@@ -4,7 +4,8 @@ import { Editor, EditorState, RichUtils } from 'draft-js';
 const io = require('socket.io-client');
 
 // Components
-import Doc from './components/doc';
+// import Doc from './components/doc';
+import DocPortal from './components/docPortal';
 import Home from './components/home';
 
 export default class App extends React.Component {
@@ -55,7 +56,7 @@ export default class App extends React.Component {
     return (
       <div>
         {this.state.home ? <Home toDoc={() => this.toDoc()}/> :
-          <Doc />
+          <DocPortal />
         }
       </div>
     );

@@ -13,19 +13,12 @@ export default class DocPortal extends React.Component {
       editorState: EditorState.createEmpty(),
       documents: [],
       title: '',
-      password: ''
+      password: '',
+      docPortal: true,
     };
     this.onChange = editorState => this.setState({ editorState })
   }
   componentDidMount() {
-    const socket = io('http://localhost:8080');
-    socket.on('connect', () => { console.log('ws connect'); });
-    socket.on('disconnect', () => { console.log('ws disconnect'); });
-    socket.on('msg', (data) => {
-      console.log('ws msg:', data);
-      socket.emit('cmd', { foo: 123 });
-    });
-
     fetch('/documents', {
 
     }).then((docs) => {
@@ -89,21 +82,30 @@ export default class DocPortal extends React.Component {
 
   }
 
+  toggle(){
+    this.setState({docPortal: !this.state.docPortal})
+  }
+
   render() {
     return (
       <div>
-        <h1>Documents Portal</h1>
-        <input type='text' onChange={(e) => this.handleTitle(e)} placeholder='new document title' value={this.state.title}></input>
-        <button onClick={() => this.onCreate()}>Create Document</button>
-
+      {this.state.docPortal ?
         <div>
-          {this.state.documents.map((doc) =>{
-            <span><a onClick={() => this.props.toggle()}>{doc.title}</a></span>
-          })}
-        </div>
+          <h1>Documents Portal</h1>
+          <input type='text' onChange={(e) => this.handleTitle(e)} placeholder='new document title' value={this.state.title}></input>
+          <button onClick={() => this.onCreate()}>Create Document</button>
 
-        <input type='text' placeholder='pase a doc id shared with you'></input>
-        <button onClick={() => this.onAddShared()}>Add Shared Document</button>
+          <div>
+            {this.state.documents.map((doc) =>
+              <span><a onClick={() => this.toggle()}>{doc.title}</a></span>
+            )}
+          </div>
+
+          <input type='text' placeholder='pase a doc id shared with you'></input>
+          <button onClick={() => this.onAddShared()}>Add Shared Document</button>
+        </div>
+        :
+        <DocEditor toggle={() => this.toggle()} /> }
       </div>
     );
   }
