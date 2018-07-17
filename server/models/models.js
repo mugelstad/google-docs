@@ -28,9 +28,12 @@ var documentSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  collaborators: {
+  owner: {
     type: mongoose.Schema.ObjectId,
     ref: 'User'
+  },
+  collaborators: {
+    type: Array,
   }
 })
 

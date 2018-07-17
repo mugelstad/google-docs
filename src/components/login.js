@@ -11,6 +11,15 @@ export default class Login extends React.Component {
     }
   }
 
+  componentDidMount() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    console.log(user);
+    if (user) {
+      console.log("USernmame: ", user.username);
+      this.props.toDoc();
+    }
+  }
+
   handleUsername(e) {
     this.setState({
       typedUsername: e.target.value,
@@ -39,6 +48,11 @@ export default class Login extends React.Component {
     .then((responseJson) => {
       if (responseJson.success) {
         console.log("Successfully logged in");
+        var user = JSON.stringify({
+          username: this.state.typedUsername,
+          password: this.state.typedPassword
+        })
+        localStorage.setItem('user', user);
         this.props.toDoc();
       }
     })

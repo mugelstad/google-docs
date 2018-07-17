@@ -97,7 +97,8 @@ app.post('/login', passport.authenticate('local'), (req, res) => {
 app.post('/newDocument', (req, res) => {
   new Document({
     title: req.body.title,
-    password: req.body.password
+    password: req.body.password,
+    owner: req.user
   }).save()
     .then((doc) => {
       res.json({success: true, id: doc._id})
