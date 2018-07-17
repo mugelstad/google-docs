@@ -34,6 +34,9 @@ var documentSchema = new mongoose.Schema({
   },
   collaborators: {
     type: Array,
+  },
+  contents: {
+    type: String
   }
 })
 

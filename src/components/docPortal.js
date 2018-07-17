@@ -14,19 +14,24 @@ export default class DocPortal extends React.Component {
       editorState: EditorState.createEmpty(),
       documents: [],
       title: '',
-      docPortal: true,
+      docPortal: false,
     };
     this.onChange = editorState => this.setState({ editorState })
   }
   componentDidMount() {
-    fetch('/documents', {
-      method: 'GET'
-    }).then((docs) => {
-      console.log("DOCS: ", docs);
-      this.setState({
-        documents: docs
-      })
-    })
+    // fetch('/documents')
+    // .then((response) => {
+    //   console.log(response);
+    //   return response.json()})
+    // .then((responseJson) => {
+    //   console.log("DOCS: ", docs);
+    //   this.setState({
+    //     documents: docs
+    //   })
+    // })
+    // .catch((err) => {
+    //   console.log("ERR: ", err);
+    // })
   }
 
   viewDoc(id) {
@@ -98,9 +103,9 @@ export default class DocPortal extends React.Component {
           <button onClick={() => this.onCreate()}>Create Document</button>
 
           <div>
-            {/* {this.state.documents.map((doc) =>
+            {this.state.documents.map((doc) =>
               <span><a onClick={() => this.toggle()}>{doc.title}</a></span>
-            )} */}
+            )}
           </div>
 
           <input type='text' placeholder='pase a doc id shared with you'></input>

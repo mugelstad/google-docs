@@ -114,7 +114,8 @@ app.post('/newDocument', (req, res) => {
 app.get('/documents', (req, res) => {
   Document.find()
     .then((docs) => {
-      res.send(docs)
+      console.log("DOC: ", docs);
+      res.json({success: true, document: docs})
     })
 })
 
@@ -122,17 +123,19 @@ app.get('/document/:id', (req, res) => {
   Document.findById(req.params.id)
     .populate('collaborators')
     .then((doc) => {
+      console.log("Success");
+      res.json({success: true, document: doc})
       // fix this part
-      if (req.user in doc.collaborators) {
-        res.json({success: true, document: doc})
-      } else {
-        // prompt document password
-        if (req.user.password === doc.password) {
-          res.json({success: true, document: doc})
-        } else {
-          res.json({success:false})
-        }
-      }
+      // if (req.user in doc.collaborators) {
+      //   res.json({success: true, document: doc})
+      // } else {
+      //   // prompt document password
+      //   if (req.user.password === doc.password) {
+      //     res.json({success: true, document: doc})
+      //   } else {
+      //     res.json({success:false})
+      //   }
+      // }
     })
     .catch((err) => {
       console.log("ERROR in loading a doc: ", err)
@@ -150,37 +153,26 @@ var color;
 io.on('connection', (socket) => {
   console.log('connected');
 
-  // socket.on('username', username => {
-  //   if (!username || !username.trim()) {
-  //     return socket.emit('errorMessage', 'No username!');
-  //   }
-  //   socket.username = String(username);
-  //   passport.authenticate('local', { successFlash: 'Welcome!' })
-  // });
+  limit --;
+  color = colors.pop();
+  // load document
+  socket.on('document', (id) => {
+    Document.findById(id)
+      .then((doc) => {
+        console.log("Joined the document");
+        socket.emit('document', doc)
+      })
 
-  // socket.username = req.user.username;
+  })
 
-  // socket.on('document', requestedDoc => {
-  //   if (!requestedDoc) {
-  //     return socket.emit('errorMessage', 'No room!');
-  //   }
-  //   if (limit === 0) {
-  //     return socket.emit('errorMessage', 'The document cannot support more than 6 editors');
-  //   }
-  //   socket.document = requestedDoc;
-  //   socket.join(requestedDoc, () => {
-  //     socket.to(requestedRoom).emit('message', {
-  //       content: `${socket.username} has joined`
-  //     });
-  //     color = colors.pop();
-  //     limit --;
-  //     socket.emit('color', color)
-  //
-  //   });
-  // })
+  // color
+  socket.emit('color', color)
 
-
-
+  // content
+  socket.on('content', content => {
+    console.log("Content: ", content);
+    socket.broadcast.emit('content', content)
+  })
 
   socket.emit('msg', { hello: 'world' });
 
