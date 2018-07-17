@@ -179,8 +179,16 @@ io.on('connection', (socket) => {
     });
   })
 
+  })
 
+  // color
+  socket.emit('color', color)
 
+  // content
+  socket.on('content', content => {
+    console.log("Content: ", content);
+    socket.broadcast.emit('content', content)
+  })
 
   socket.emit('msg', { hello: 'world' });
 

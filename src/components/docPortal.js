@@ -17,7 +17,7 @@ export default class DocPortal extends React.Component {
       editorState: EditorState.createEmpty(),
       documents: [],
       title: '',
-      docPortal: true,
+      docPortal: false,
     };
     this.onChange = editorState => this.setState({ editorState });
   }
