@@ -13,9 +13,6 @@ export default class App extends React.Component {
     super(props);
     this.state = {
       editorState: EditorState.createEmpty(),
-      fontSize: 34,
-      fontColor: 'black',
-      textAlignment: 'left',
       home: true,
     };
     this.onChange = editorState => this.setState({ editorState });

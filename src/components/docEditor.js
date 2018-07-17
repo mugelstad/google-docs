@@ -3,7 +3,7 @@ import { Editor, EditorState, RichUtils } from 'draft-js';
 
 // Components
 import ToolBar from './toolbar';
-import DocPortal from './docPortal';
+import styleMap from './stylemap';
 
 // import io from '../server/index';
 const io = require('socket.io-client');
@@ -65,6 +65,27 @@ export default class DocEditor extends React.Component {
     this.onChange(RichUtils.toggleBlockType(this.state.editorState, value));
   }
 
+  alignLeft(){
+    const type = contentBlock.getType();
+    if (type === 'blockquote') {
+      return 'leftAligned';
+    }
+  }
+
+  alignRight(){
+    const type = contentBlock.getType();
+    if (type === 'blockquote') {
+      return 'rightAligned';
+    }
+  }
+
+  alignCenter(contentBlock){
+    const type = contentBlock.getType();
+    if (type === 'blockquote') {
+      return 'centeredContent';
+    }
+  }
+
   handleKeyCommand(command, editorState) {
     const newState = RichUtils.handleKeyCommand(editorState, command);
     if (newState) {
@@ -82,7 +103,7 @@ export default class DocEditor extends React.Component {
         <br />
         <h2>Sample Document</h2>
         <br />
-        <p>Shareable Document ID:</p>
+        <p>Shareable Document ID: {this.props.id}</p>
         <button type="button">Save Changes</button>
         <div>
           <ToolBar

@@ -5,21 +5,21 @@ import cookieParser from 'cookie-parser';
 
 // Express setup
 import express from 'express';
+
 const app = express();
-const path = require('path');
 // Socket IO setup
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
-const session = require('cookie-session');
 
 
 // Databased (mlab) setup
-var connect = process.env.MLAB;
+const connect = process.env.MLAB;
 mongoose.connect(connect);
 
-var models = require('./models/models');
-var User = models.User;
-var Document = models.Document;
+const models = require('./models/models');
+
+const User = models.User;
+const Document = models.Document;
 
 // Passport setup
 
@@ -101,38 +101,39 @@ app.post('/newDocument', (req, res) => {
   new Document({
     title: req.body.title,
     password: req.body.password,
-    owner: req.user
+    owner: req.user,
   }).save()
     .then((doc) => {
-      res.json({success: true, id: doc._id})
+      res.json({ success: true, id: doc._id });
     })
     .catch((err) => {
-      res.json({success: false})
+      res.json({ success: false, error: err });
     })
 })
 
 app.get('/documents', (req, res) => {
   Document.find()
     .then((docs) => {
-      res.send(docs)
-    })
-})
+      res.send(docs);
+    });
+});
 
 app.get('/document/:id', (req, res) => {
   Document.findById(req.params.id)
-    .populate('collaborators')
+    // .populate('collaborators')
     .then((doc) => {
       // fix this part
-      if (req.user in doc.collaborators) {
-        res.json({success: true, document: doc})
-      } else {
-        // prompt document password
-        if (req.user.password === doc.password) {
-          res.json({success: true, document: doc})
-        } else {
-          res.json({success:false})
-        }
-      }
+      res.json({ success: true, document: doc });
+      // if (req.user._id in doc.collaborators) {
+      //   res.json({ success: true, document: doc })
+      // } else {
+      //   // prompt document password
+      //   if (req.user.password === doc.password) {
+      //     res.json({ success: true, document: doc })
+      //   } else {
+      //     res.json({ success: false })
+      //   }
+      // }
     })
     .catch((err) => {
       console.log("ERROR in loading a doc: ", err)
@@ -143,9 +144,9 @@ app.get('/document/:id', (req, res) => {
 // Socket IO setup
 server.listen(8080);
 
-var limit = 6;
-var colors = ['red', 'blue', 'yellow', 'black', 'green', 'white'];
-var color;
+let limit = 6;
+const colors = ['red', 'blue', 'yellow', 'black', 'green', 'white'];
+let color;
 
 io.on('connection', (socket) => {
   console.log('connected');
@@ -160,24 +161,24 @@ io.on('connection', (socket) => {
 
   // socket.username = req.user.username;
 
-  // socket.on('document', requestedDoc => {
-  //   if (!requestedDoc) {
-  //     return socket.emit('errorMessage', 'No room!');
-  //   }
-  //   if (limit === 0) {
-  //     return socket.emit('errorMessage', 'The document cannot support more than 6 editors');
-  //   }
-  //   socket.document = requestedDoc;
-  //   socket.join(requestedDoc, () => {
-  //     socket.to(requestedRoom).emit('message', {
-  //       content: `${socket.username} has joined`
-  //     });
-  //     color = colors.pop();
-  //     limit --;
-  //     socket.emit('color', color)
-  //
-  //   });
-  // })
+  socket.on('document', (requestedDoc) => {
+    if (!requestedDoc) {
+      return socket.emit('errorMessage', 'No room!');
+    }
+    if (limit === 0) {
+      return socket.emit('errorMessage', 'The document cannot support more than 6 editors');
+    }
+
+    socket.join(requestedDoc, () => {
+      console.log(requestedDoc);
+      socket.to(requestedDoc).emit('message', {
+        content: `${socket.username} has joined`
+      });
+      color = colors.pop();
+      limit--;
+      socket.emit('color', color)
+    });
+  })
 
 
 
