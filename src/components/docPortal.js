@@ -4,6 +4,7 @@ import { EditorState } from 'draft-js';
 // Components
 import DocEditor from './docEditor';
 import StartBar from './startBar';
+import DocumentList from './documentList'
 
 const prompt = require('electron-prompt');
 const io = require('socket.io-client');
@@ -42,7 +43,7 @@ export default class DocPortal extends React.Component {
 
   onCreate() {
     // prompt password
-    prompt({ title: 'Enter password' })
+    prompt({ title: 'Password Needed', label: 'Enter A Password' })
     .then((password) => {
       fetch(`http://localhost:8080/newDocument/${this.state.user.id}`, {
         method: 'POST',
@@ -77,7 +78,7 @@ export default class DocPortal extends React.Component {
     .then((responseJson) => {
       if (responseJson.passNeeded) {
         const doc = responseJson.doc;
-        prompt({ title: 'Enter Password for this document' })
+        prompt({ title: 'Password Needed', label: 'Enter Password for this document' })
         .then((password) => {
           if (password === doc.password) {
             const docCopy = JSON.parse(JSON.stringify(doc));
@@ -126,11 +127,12 @@ export default class DocPortal extends React.Component {
               change={(e) => this.handleTitle(e)}
               title={this.state.title}
             />
-            <div>
+            {/* <div>
               {(this.state.documents).map(doc =>
                 <p><a onClick={() => this.viewDoc(doc._id)}>{doc.title}</a></p>
               )}
-            </div>
+            </div> */}
+            <DocumentList documents={this.state.documents} view={id => this.viewDoc(id)} />
 
           </div>
         :
