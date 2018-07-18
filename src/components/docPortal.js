@@ -7,8 +7,6 @@ import DocEditor from './docEditor';
 const prompt = require('electron-prompt');
 const io = require('socket.io-client');
 
-const socket = io('http://127.0.0.1:8080');
-
 
 export default class DocPortal extends React.Component {
   constructor(props) {
@@ -17,7 +15,8 @@ export default class DocPortal extends React.Component {
       editorState: EditorState.createEmpty(),
       documents: [],
       title: '',
-      docPortal: false,
+      docPortal: true,
+      socket: io('http://127.0.0.1:8080')
     };
     this.onChange = editorState => this.setState({ editorState });
   }
@@ -57,6 +56,11 @@ export default class DocPortal extends React.Component {
       .then((responseJson) => {
         if (responseJson.success) {
           console.log('Successfully created doc');
+          var docs = this.state.documents.slice();
+          docs.push(responseJson.doc)
+          this.setState({
+            documents: docs
+          })
           this.toggle();  // move to docEditor
         }
       })
@@ -67,33 +71,39 @@ export default class DocPortal extends React.Component {
   }
 
 
-  viewDoc(id) {
+  viewDoc(id, title) {
     // call in document portal front-end side
     this.setState({ selectedDocId: id });
+    this.setState({ title: title });
     fetch(`http://localhost:8080/document/${id}`, {
       method: 'GET',
     }).then(response => response.json())
     .then((responseJson) => {
       if (responseJson.success) {
-        socket.emit('document', responseJson.document);
-        this.toggle();
+        // this.state.socket.emit('document', {id: id, user: user});
+        this.toDoc();
       } else {
         console.log('fetching the document was unsuccessful');
       }
     }).catch(error => console.log('error', error));
 
-    socket.on('message', (message) => {
-      alert(message.content);
-    })
+    // this.state.socket.on('message', (message) => {
+    //   alert(message.content);
+    // })
 
   }
 
   // onAddShared(){
   //
   // }
+  toDoc() {
+    this.setState({ docPortal: false })
+  }
 
-  toggle() {
-    this.setState({ docPortal: !this.state.docPortal })
+  toPortal(id) {
+    const user = JSON.parse(localStorage.getItem('user'));
+    this.state.socket.emit('exit', {user: user, docID: id});
+    this.setState({ docPortal: true })
   }
 
   render() {
@@ -113,13 +123,13 @@ export default class DocPortal extends React.Component {
             <button onClick={() => this.onAddShared()}>Add Shared Document</button>
             <div>
               {(this.state.documents).map(doc =>
-                <p><a onClick={() => this.viewDoc(doc._id)}>{doc.title}</a></p>
+                <p><a onClick={() => this.viewDoc(doc._id, doc.title)}>{doc.title}</a></p>
               )}
             </div>
 
           </div>
         :
-          <DocEditor toggle={() => this.toggle()} id={this.state.selectedDocId} /> }
+          <DocEditor toggle={(id) => this.toPortal(id)} title={this.state.title} id={this.state.selectedDocId} /> }
       </div>
     );
   }

@@ -37,6 +37,12 @@ var documentSchema = new mongoose.Schema({
   },
   contents: {
     type: String
+  },
+  counter: {
+    type: Number
+  },
+  editors: {
+    type: Array
   }
 })
 
