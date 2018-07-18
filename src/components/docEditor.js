@@ -1,5 +1,8 @@
 import React from 'react';
-import { Editor, EditorState, RichUtils, convertToRaw, convertFromRaw } from 'draft-js';
+import { Editor, EditorState, RichUtils, convertToRaw, convertFromRaw, Modifier } from 'draft-js';
+// import createHighlightPlugin from 'draft-js-highlight-plugin';
+
+const io = require('socket.io-client');
 
 // Components
 import ToolBar from './toolbar';
@@ -7,8 +10,6 @@ import ToolBar from './toolbar';
 
 // Custom Styles
 import styleMap from './stylemap';
-
-const io = require('socket.io-client');
 
 export default class DocEditor extends React.Component {
 
@@ -20,41 +21,33 @@ export default class DocEditor extends React.Component {
       docPortal: false,
       myColor: null,
       document: {},
-
+      editors: []
     };
     // this.onChange = editorState => this.setState({ editorState });
     this.handleKeyCommand = () => this.handleKeyCommand;
   }
 
   componentDidMount() {
-    const { socket } = this.state
+    let { socket } = this.state
+    const user = JSON.parse(localStorage.getItem('user'));
     socket.on('connect', () => {
       console.log('ws connect');
-      console.log(this.state.editorState);
-      const selectionState = this.state.editorState.getSelection()
-      console.log('');
-      const anchorKey = selectionState.getAnchorKey();
-      console.log("anchor", anchorKey);
-      const currentContent = this.state.editorState.getCurrentContent();
-      const currentContentBlock = currentContent.getBlockForKey(anchorKey);
-      const start = selectionState.getStartOffset();
-      const end = selectionState.getEndOffset();
-      const selectedText = currentContentBlock.getText().slice(start, end);
 
-      socket.emit('document', '5b4e37aae7179a508a8d0c64');
-      // call in document portal front-end side
-      socket.on('document', (doc) => {
+      socket.emit('document', {id: this.props.id, user: user});
+      // socket.emit('document', this.props.id);
+      //call in document portal front-end side
+      socket.on('document', (obj) => {
         this.setState({
-          document: doc
+          document: obj.doc,
+          editors: obj.editors
         })
-        console.log("The doc is: ", doc);
+        console.log("The doc is: ", obj.doc);
       })
       //
       socket.on('color', (color) => {
         console.log("Color us: ", color);
         this.setState({myColor: color})
       })
-
 
       socket.on('content', (content) => {
         console.log("content: ", content);
@@ -66,14 +59,29 @@ export default class DocEditor extends React.Component {
         })
       })
 
+      socket.on('cursor', (cursor) => {
+        // inline styling?
+        // add a line
+      })
+
+      // socket.on('highlight', (highlight) => {
+      //   Modifier.applyInlineStyle({
+      //     contentState: highlight.currentContent,
+      //     selectionState: highlight.selectionState,
+      //     inlineStyle: highlight.inlineStyle
+      //   })
+      // })
+
     });
-    //   //get document information
-    //   socket.emit('document', doc)
+
+    socket.on('errorMessage', message => {
+      // YOUR CODE HERE (3)
+      console.log(message);
+      alert(message);
+    });
+
     socket.on('disconnect', () => { console.log('ws disconnect'); });
-    socket.on('msg', (data) => {
-      console.log('ws msg:', data);
-      socket.emit('cmd', { foo: 123 });
-    });
+
   }
 
   // Funtions
@@ -109,8 +117,38 @@ export default class DocEditor extends React.Component {
 
   onChange(editorState) {
     console.log('in on change');
-    let currentContent = this.state.editorState.getCurrentContent();
+
+    let selectionState = editorState.getSelection();
+    console.log("Selection state: ", selectionState);
+    let currentContent = editorState.getCurrentContent();
+    let anchorKey = selectionState.getAnchorKey();
+    let currentContentBlock = currentContent.getBlockForKey(anchorKey);
+    let start = selectionState.getStartOffset();
+    console.log("Start: ", start);
+    let end = selectionState.getEndOffset();
+    console.log("End: ", end);
+    let selectedText = currentContentBlock.getText().slice(start, end);
+    console.log('selected: ', selectedText);
+
+    // Real-time Content changes
     this.state.socket.emit('content', convertToRaw(currentContent));
+
+    // Real-time Cursor loc changes
+    // this.state.socket.emit('cursor', {
+    // user: this.state.document.owner,
+    // color: this.state.myColor,
+    // location: {
+    //   start: start, end: end}
+    // })
+
+    // Real-time Highlight changes
+    // this.state.socket.emit('highlight',
+    // {
+    //   contentState: currentContent,
+    //   selectionState: selectionState,
+    //   inlineStyle: `${this.state.myColor}`
+    // })
+
     this.setState({
       editorState,
     })
@@ -122,16 +160,26 @@ export default class DocEditor extends React.Component {
     // })
   }
 
+  save() {
+    let currentContent = this.state.editorState.getCurrentContent();
+    console.log("Save the content ", currentContent);
+    // fetch post request: save
+    this.state.socket.emit('save', {content: currentContent, id: this.props.id});
+  }
+
   render() {
-    console.log('portal: ', this.state.docPortal);
+    // console.log('portal: ', this.state.docPortal);
     return (
       <div>
-        <button type="button">Back to Documents Portal</button>
+        <button type="button" onClick={() => this.props.toggle(this.props.id)}>Back to Documents Portal</button>
         <br />
         <h2>{this.props.title}</h2>
         <br />
         <p>Shareable Document ID: {this.props.id}</p>
-        <button type="button">Save Changes</button>
+        <p>Current editors: <ul>{this.state.editors.map(editor => {
+          <li>{editor}</li>
+        })}</ul></p>
+        <button type="button" onClick={() => this.save()} >Save Changes</button>
         <div>
           <ToolBar
             edit={value => this.makeEdit(value)}

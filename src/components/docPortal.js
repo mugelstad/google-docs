@@ -9,8 +9,6 @@ import DocumentList from './documentList'
 const prompt = require('electron-prompt');
 const io = require('socket.io-client');
 
-const socket = io('http://127.0.0.1:8080');
-
 
 export default class DocPortal extends React.Component {
   constructor(props) {
@@ -20,6 +18,7 @@ export default class DocPortal extends React.Component {
       documents: [],
       title: '',
       docPortal: true,
+      socket: io('http://127.0.0.1:8080')
     };
     this.onChange = editorState => this.setState({ editorState });
   }
@@ -59,6 +58,11 @@ export default class DocPortal extends React.Component {
       .then((responseJson) => {
         if (responseJson.success) {
           console.log('Successfully created doc');
+          var docs = this.state.documents.slice();
+          docs.push(responseJson.doc)
+          this.setState({
+            documents: docs
+          })
           this.toggle();  // move to docEditor
         }
       })
@@ -69,7 +73,7 @@ export default class DocPortal extends React.Component {
   }
 
 
-  viewDoc(id) {
+  viewDoc(id, title) {
     // call in document portal front-end side
     this.setState({ selectedDocId: id });
     fetch(`http://localhost:8080/document/${id}/${this.state.user.id}`, {
@@ -84,7 +88,7 @@ export default class DocPortal extends React.Component {
             const docCopy = JSON.parse(JSON.stringify(doc));
             docCopy.collaborators.push(responseJson.user);
             this.setState({ selectedDocTitle: doc.title });
-            socket.emit('document', { username: responseJson.user.username, doc: docCopy });
+            this.state.socket.emit('document', { username: responseJson.user.username, doc: docCopy });
             this.toggle();
           } else {
             alert('Password Was Incorrect');
@@ -92,16 +96,16 @@ export default class DocPortal extends React.Component {
         })
       } else if (responseJson.success) {
         this.setState({ selectedDocTitle: responseJson.document.title });
-        socket.emit('document', responseJson.document);
+        this.state.socket.emit('document', responseJson.document);
         this.toggle();
       } else {
         console.log('fetching the document was unsuccessful');
       }
     }).catch(error => console.log('error', error));
 
-    socket.on('message', (message) => {
-      alert(message.content);
-    })
+    // this.state.socket.on('message', (message) => {
+    //   alert(message.content);
+    // })
 
 
 
@@ -110,9 +114,14 @@ export default class DocPortal extends React.Component {
   // onAddShared(){
   //
   // }
+  toDoc() {
+    this.setState({ docPortal: false })
+  }
 
-  toggle() {
-    this.setState({ docPortal: !this.state.docPortal })
+  toPortal(id) {
+    const user = JSON.parse(localStorage.getItem('user'));
+    this.state.socket.emit('exit', {user: user, docID: id});
+    this.setState({ docPortal: true })
   }
 
   render() {
@@ -129,7 +138,7 @@ export default class DocPortal extends React.Component {
             />
             {/* <div>
               {(this.state.documents).map(doc =>
-                <p><a onClick={() => this.viewDoc(doc._id)}>{doc.title}</a></p>
+                <p><a onClick={() => this.viewDoc(doc._id, doc.title)}>{doc.title}</a></p>
               )}
             </div> */}
             <DocumentList documents={this.state.documents} view={id => this.viewDoc(id)} />

@@ -126,6 +126,7 @@ app.get('/documents', (req, res) => {
   console.log('USER', req.user)
   Document.find()
     .then((docs) => {
+      console.log("DOCS: ", docs);
       res.send(docs);
     });
 });
@@ -153,45 +154,60 @@ app.get('/document/:id/:user', (req, res) => {
 // Socket IO setup
 server.listen(8080);
 
-let limit = 6;
 const colors = ['red', 'blue', 'yellow', 'black', 'green', 'white'];
 let color;
+let editors = [];
 
 io.on('connection', (socket) => {
   console.log('connected');
 
-  // socket.on('username', username => {
-  //   if (!username || !username.trim()) {
-  //     return socket.emit('errorMessage', 'No username!');
-  //   }
-  //   socket.username = String(username);
-  //   passport.authenticate('local', { successFlash: 'Welcome!' })
-  // });
+  // Q: limit decreases every time : Load capacity
+  // load document
+  socket.on('document', (obj) => {
+    Document.findById(obj.id)
+      .then((doc) => {
+        console.log("Joined the document");
+        console.log("Counter: ", doc.counter);
+        doc.counter = doc.counter + 1;
+        if (doc.counter > 6) {
+          return socket.emit('errorMessage', 'Document cannot hold more than 6 editors')
+        } else {
+          doc.editors.push(obj.user);
+        }
+        return doc.save()
+      })
+      .then((updated) => {
+        console.log("Editors: ", updated.editors);
+        socket.emit('document', {doc: updated, editors: updated.editors})
+      })
+    })
 
-  // socket.username = req.user.username;
-  socket.on('document', (requestedDoc) => {
-    if (!requestedDoc) {
-      return socket.emit('errorMessage', 'No room!');
-    }
-    if (limit === 0) {
-      return socket.emit('errorMessage', 'The document cannot support more than 6 editors');
-    }
-    const username = requestedDoc.username;
-    Document.findByIdAndUpdate(requestedDoc.doc.id,
-      { collaborators: requestedDoc.doc.collaborators }, (doc) => {
-        socket.join(doc, () => {
-          socket.to(doc).emit('message', {
-            content: `${username} has joined`,
-          });
-          color = colors.pop();
-          limit--;
-          socket.emit('color', color);
-        });
-      });
-  });
+  // var room = io.sockets.adapter.rooms['my_room'];
+
+  // socket.on('document', obj => {
+  //     Document.findById(obj.id)
+  //       .then((doc) => {
+  //         socket.room = obj.id;
+  //         if (io.sockets.adapter.rooms[obj.id])
+  //         socket.join(obj.id, () => {
+  //           io.to(requestedRoom, 'a new user has joined');
+  //         });
+  //       })
+  //   });
 
   // color
+  color = colors.pop();
   socket.emit('color', color)
+
+  // // highlight
+  // socket.on('highlight', highlight => {
+  //   socket.broadcast.emit('highlight', highlight)
+  // })
+  //
+  // // cursor
+  // socket.on('cursor', cursor => {
+  //   socket.broadcast.emit('cursor', cursor)
+  // })
 
   // content
   socket.on('content', content => {
@@ -199,11 +215,29 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('content', content)
   })
 
-  socket.emit('msg', { hello: 'world' });
+  // save
+  socket.on('save', obj => {
+    Document.findByIdAndUpdate(obj.id, {contents: obj.content})
+      .then((doc) => {
+        console.log("Updated doc to: ", doc);
+      })
+  })
 
-  socket.on('cmd', (data) => {
-    console.log(data);
-  });
+  socket.on('exit', obj => {
+    Document.findById(obj.docID)
+      .then((doc) => {
+        doc.counter = doc.counter - 1;
+        var index = doc.editors.indexOf(doc.user);
+        if (index > -1) {
+          doc.editors.splice(index, 1);
+        }
+        return doc.save()
+      })
+      .then((updated) => {
+        console.log("Updated doc to: ", updated);
+      })
+  })
+
 });
 
 
