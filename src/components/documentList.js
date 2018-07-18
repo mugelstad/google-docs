@@ -1,5 +1,5 @@
 import React from 'react';
-import { InputGroup, FormGroup, Glyphicon, FormControl, Button } from 'react-bootstrap';
+import { InputGroup, FormGroup, Glyphicon, FormControl, Button, ButtonGroup } from 'react-bootstrap';
 
 
 export default class DocumentList extends React.Component{
@@ -10,12 +10,14 @@ export default class DocumentList extends React.Component{
 
   render() {
     return (
-      {this.props.documents.map(doc =>
-        <ButtonGroup vertical onClick={() => this.props.view(doc._id)}>
-          <Button><Glyphicon glyph="file" /></Button>
-          <Button>{doc.title}</Button>
-        </ButtonGroup>
-      )}
+      <div>
+        {this.props.documents.map(doc =>
+          <ButtonGroup vertical onClick={() => this.props.view(doc._id)}>
+            <Button><Glyphicon glyph="file" /></Button>
+            <Button>{doc.title}</Button>
+          </ButtonGroup>
+        )}
+      </div>
 
     )
   }
