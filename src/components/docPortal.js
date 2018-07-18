@@ -28,8 +28,9 @@ export default class DocPortal extends React.Component {
     }).then(docsJ => docsJ.json())
     .then((docs) => {
       const user = JSON.parse(localStorage.getItem('user'));
+      const userDocs = docs.filter(doc => (doc.collaborators.indexOf(user.id) !== -1 || user.id === doc.owner));
       this.setState({
-        documents: docs, user,
+        documents: userDocs, user,
       });
     });
   }
@@ -59,7 +60,7 @@ export default class DocPortal extends React.Component {
         if (responseJson.success) {
           console.log('Successfully created doc');
           var docs = this.state.documents.slice();
-          docs.push(responseJson.doc)
+          docs.push(responseJson.document);
           this.setState({
             documents: docs
           })
@@ -73,31 +74,18 @@ export default class DocPortal extends React.Component {
   }
 
 
-  viewDoc(id, title) {
+  viewDoc(id) {
     // call in document portal front-end side
-    this.setState({ selectedDocId: id });
     fetch(`http://localhost:8080/document/${id}/${this.state.user.id}`, {
       method: 'GET',
     }).then(response => response.json())
     .then((responseJson) => {
-      if (responseJson.passNeeded) {
-        const doc = responseJson.doc;
-        prompt({ title: 'Password Needed', label: 'Enter Password for this document' })
-        .then((password) => {
-          if (password === doc.password) {
-            const docCopy = JSON.parse(JSON.stringify(doc));
-            docCopy.collaborators.push(responseJson.user);
-            this.setState({ selectedDocTitle: doc.title });
-            this.state.socket.emit('document', { username: responseJson.user.username, doc: docCopy });
-            this.toggle();
-          } else {
-            alert('Password Was Incorrect');
-          }
-        })
-      } else if (responseJson.success) {
-        this.setState({ selectedDocTitle: responseJson.document.title });
-        this.state.socket.emit('document', responseJson.document);
+      if (responseJson.success) {
+        this.setState({ selectedDoc: responseJson.document });
+        this.state.socket.emit('document', { document: responseJson.document });
         this.toggle();
+      } else if (responseJson.passNeeded) {
+        alert('You do not have access to this document');
       } else {
         console.log('fetching the document was unsuccessful');
       }
@@ -111,16 +99,44 @@ export default class DocPortal extends React.Component {
 
   }
 
-  // onAddShared(){
-  //
-  // }
-  toDoc() {
-    this.setState({ docPortal: false })
+  onAddShared() {
+    fetch(`http://localhost:8080/document/${this.state.sharedDocId}/${this.state.user.id}`, {
+      method: 'GET',
+    }).then(response => response.json())
+    .then((responseJson) => {
+      if (responseJson.passNeeded) {
+        const doc = responseJson.document;
+        prompt({ title: 'Password Needed', label: 'Enter Password for this document' })
+        .then((password) => {
+          if (password === doc.password) {
+            const docCopy = JSON.parse(JSON.stringify(doc));
+            docCopy.collaborators.push(this.state.user.id);
+            console.log('DocCpy', docCopy);
+            this.setState({ selectedDoc: docCopy });
+            this.state.socket.emit('document', { user: this.state.user, document: docCopy });
+            this.toggle();
+          } else {
+            alert('Password Was Incorrect');
+          }
+        })
+      } else if (responseJson.succes) {
+        const docCopy = JSON.parse(JSON.stringify(responseJson.document));
+        console.log('DocCpy', docCopy);
+        this.state.socket.emit('document', { user: this.state.user, document: docCopy });
+        this.toggle();
+      } else {
+        alert('Document was not added');
+      }
+    })
+  }
+
+  toggle() {
+    this.setState({ docPortal: !this.state.docPortal });
   }
 
   toPortal(id) {
     const user = JSON.parse(localStorage.getItem('user'));
-    this.state.socket.emit('exit', {user: user, docID: id});
+    this.state.socket.emit('exit', { user, docID: id });
     this.setState({ docPortal: true })
   }
 
@@ -133,22 +149,17 @@ export default class DocPortal extends React.Component {
             <StartBar
               create={() => this.onCreate()}
               addShared={() => this.onAddShared()}
-              change={(e) => this.handleTitle(e)}
+              changeTitle={e => this.handleTitle(e)}
+              changeShared={e => this.setState({ sharedDocId: e.target.value })}
               title={this.state.title}
             />
-            {/* <div>
-              {(this.state.documents).map(doc =>
-                <p><a onClick={() => this.viewDoc(doc._id, doc.title)}>{doc.title}</a></p>
-              )}
-            </div> */}
             <DocumentList documents={this.state.documents} view={id => this.viewDoc(id)} />
 
           </div>
         :
           <DocEditor
             toggle={() => this.toggle()}
-            id={this.state.selectedDocId}
-            title={this.state.selectedDocTitle}
+            doc={this.state.selectedDoc}
           /> }
       </div>
     );

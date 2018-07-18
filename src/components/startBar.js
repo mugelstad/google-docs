@@ -11,13 +11,13 @@ export default class StartBar extends React.Component{
   render() {
     return (
       <form>
+        Start New Document
         <FormGroup>
-          Start New Document
           <InputGroup>
             <FormControl
               type="text"
               placeholder="Enter Name of Document"
-              onChange={e => this.props.change(e)}
+              onChange={e => this.props.changeTitle(e)}
               value={this.props.title}
             />
             <InputGroup.Addon
@@ -27,10 +27,14 @@ export default class StartBar extends React.Component{
             </InputGroup.Addon>
           </InputGroup>
         </FormGroup>
+        Add Shared Document
         <FormGroup>
-          Add Shared Document
           <InputGroup>
-            <FormControl type="text" placeholder="Enter ID of Document" />
+            <FormControl
+              type="text"
+              placeholder="Enter ID of Document"
+              onChange={e => this.props.changeShared(e)}
+            />
             <InputGroup.Addon
               onClick={() => this.props.addShared()}
             >

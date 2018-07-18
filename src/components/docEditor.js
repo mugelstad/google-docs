@@ -33,7 +33,7 @@ export default class DocEditor extends React.Component {
     socket.on('connect', () => {
       console.log('ws connect');
 
-      socket.emit('document', {id: this.props.id, user: user});
+      socket.emit('document', { user, document: this.props.doc });
       // socket.emit('document', this.props.id);
       //call in document portal front-end side
       socket.on('document', (obj) => {
@@ -45,12 +45,12 @@ export default class DocEditor extends React.Component {
       })
       //
       socket.on('color', (color) => {
-        console.log("Color us: ", color);
-        this.setState({myColor: color})
+        console.log('Color us: ', color);
+        this.setState({ myColor: color })
       })
 
       socket.on('content', (content) => {
-        console.log("content: ", content);
+        console.log('content: ', content);
         var e = EditorState.createWithContent(convertFromRaw(content));
         var s = this.state.editorState.getSelection();
         var newEditor = EditorState.forceSelection(e, s);
@@ -173,10 +173,10 @@ export default class DocEditor extends React.Component {
       <div>
         <button type="button" onClick={() => this.props.toggle(this.props.id)}>Back to Documents Portal</button>
         <br />
-        <h2>{this.props.title}</h2>
+        <h2>{this.props.doc.title}</h2>
         <br />
-        <p>Shareable Document ID: {this.props.id}</p>
-        <p>Current editors: <ul>{this.state.editors.map(editor => {
+        <p>Shareable Document ID: {this.props.doc._id}</p>
+        <p>Current editors: <ul>{this.state.editors.map((editor) => {
           <li>{editor}</li>
         })}</ul></p>
         <button type="button" onClick={() => this.save()} >Save Changes</button>
@@ -189,9 +189,9 @@ export default class DocEditor extends React.Component {
         </div>
         <div style={{ border: '1px red solid', textAlign: this.state.align }}>
           <Editor
-            textAlignment='right'
+            textAlignment="right"
             editorState={this.state.editorState}
-            onChange={this.onChange}
+            onChange={this.onChange.bind(this)}
             handleKeyCommand={this.handleKeyCommand}
             customStyleMap={styleMap}
             blockStyleFn={this.myBlockStyleFn}

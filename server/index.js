@@ -137,12 +137,12 @@ app.get('/document/:id/:user', (req, res) => {
     .then((doc) => {
       // fix this part
       console.log(doc)
-      if (doc.owner && (req.params.user in doc.collaborators ||
+      if (doc.owner && (doc.collaborators.indexOf(req.params.id) !== -1 ||
          req.params.user === doc.owner._id)) {
         res.json({ success: true, document: doc });
       } else {
         // prompt document password on front end
-        res.json({ success: true, passNeeded: true, user: req.params.user, doc });
+        res.json({ success: true, passNeeded: true, user: req.params.user, document: doc });
       }
     })
     .catch((err) => {
@@ -164,23 +164,20 @@ io.on('connection', (socket) => {
   // Q: limit decreases every time : Load capacity
   // load document
   socket.on('document', (obj) => {
-    Document.findById(obj.id)
+    console.log('S-document', obj);
+    Document.findById(obj.document._id)
       .then((doc) => {
-        console.log("Joined the document");
-        console.log("Counter: ", doc.counter);
-        doc.counter = doc.counter + 1;
-        if (doc.counter > 6) {
-          return socket.emit('errorMessage', 'Document cannot hold more than 6 editors')
-        } else {
-          doc.editors.push(obj.user);
-        }
-        return doc.save()
+        console.log('Joined the document');
+        doc.collaborators.push(obj.user.id);
+        doc.editors.push(obj.user);
+        return doc.save();
       })
       .then((updated) => {
-        console.log("Editors: ", updated.editors);
-        socket.emit('document', {doc: updated, editors: updated.editors})
+        console.log('Editors: ', updated.editors);
+        socket.emit('document', { doc: updated, editors: updated.editors });
       })
-    })
+      .catch(err => console.log('error', err));
+  })
 
   // var room = io.sockets.adapter.rooms['my_room'];
 
@@ -217,9 +214,9 @@ io.on('connection', (socket) => {
 
   // save
   socket.on('save', obj => {
-    Document.findByIdAndUpdate(obj.id, {contents: obj.content})
+    Document.findByIdAndUpdate(obj.id, { contents: obj.content })
       .then((doc) => {
-        console.log("Updated doc to: ", doc);
+        console.log('Updated doc to: ', doc);
       })
   })
 
