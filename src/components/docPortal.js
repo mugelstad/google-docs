@@ -3,6 +3,7 @@ import { EditorState } from 'draft-js';
 
 // Components
 import DocEditor from './docEditor';
+import StartBar from './startBar';
 
 const prompt = require('electron-prompt');
 const io = require('socket.io-client');
@@ -41,7 +42,7 @@ export default class DocPortal extends React.Component {
 
   onCreate() {
     // prompt password
-    prompt('Enter password')
+    prompt({ title: 'Enter password' })
     .then((password) => {
       fetch(`http://localhost:8080/newDocument/${this.state.user.id}`, {
         method: 'POST',
@@ -74,7 +75,21 @@ export default class DocPortal extends React.Component {
       method: 'GET',
     }).then(response => response.json())
     .then((responseJson) => {
-      if (responseJson.success) {
+      if (responseJson.passNeeded) {
+        const doc = responseJson.doc;
+        prompt({ title: 'Enter Password for this document' })
+        .then((password) => {
+          if (password === doc.password) {
+            const docCopy = JSON.parse(JSON.stringify(doc));
+            docCopy.collaborators.push(responseJson.user);
+            this.setState({ selectedDocTitle: doc.title });
+            socket.emit('document', { username: responseJson.user.username, doc: docCopy });
+            this.toggle();
+          } else {
+            alert('Password Was Incorrect');
+          }
+        })
+      } else if (responseJson.success) {
         this.setState({ selectedDocTitle: responseJson.document.title });
         socket.emit('document', responseJson.document);
         this.toggle();
@@ -86,6 +101,8 @@ export default class DocPortal extends React.Component {
     socket.on('message', (message) => {
       alert(message.content);
     })
+
+
 
   }
 
@@ -99,19 +116,16 @@ export default class DocPortal extends React.Component {
 
   render() {
     return (
-      <div>
+      <div style={{ paddingLeft: 40, paddingRight: 40 }}>
         {this.state.docPortal ?
           <div>
             <h1>Documents Portal</h1>
-            <input
-              type="text"
-              onChange={e => this.handleTitle(e)}
-              placeholder="new document title"
-              value={this.state.title}
+            <StartBar
+              create={() => this.onCreate()}
+              addShared={() => this.onAddShared()}
+              change={(e) => this.handleTitle(e)}
+              title={this.state.title}
             />
-            <button onClick={() => this.onCreate()}>Create Document</button>
-            <input type="text" placeholder="parse a doc id shared with you" />
-            <button onClick={() => this.onAddShared()}>Add Shared Document</button>
             <div>
               {(this.state.documents).map(doc =>
                 <p><a onClick={() => this.viewDoc(doc._id)}>{doc.title}</a></p>

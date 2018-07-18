@@ -120,7 +120,6 @@ export default class DocEditor extends React.Component {
     //   selectionState: selectionState,
     //   inlineStyle: `backgroundColor: ${this.state.myColor}`
     // })
-
   }
 
   render() {

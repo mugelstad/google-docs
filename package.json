@@ -57,6 +57,7 @@
     "bootstrap": "^4.1.2",
     "cookie-parser": "^1.4.3",
     "cookie-session": "^2.0.0-beta.3",
+    "dialogs": "^1.1.20",
     "draft-js": "^0.10.5",
     "draft-js-highlight-plugin": "^0.1.2",
     "draft.js": "^0.2.0",

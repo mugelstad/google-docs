@@ -23,7 +23,6 @@ const models = require('./models/models');
 
 const User = models.User;
 const Document = models.Document;
-// const prompt = require('electron-prompt');
 
 // Passport setup
 
@@ -137,22 +136,12 @@ app.get('/document/:id/:user', (req, res) => {
     .then((doc) => {
       // fix this part
       console.log(doc)
-
-      if (req.params.user in doc.collaborators || req.params.user === doc.owner._id) {
+      if (doc.owner && (req.params.user in doc.collaborators ||
+         req.params.user === doc.owner._id)) {
         res.json({ success: true, document: doc });
       } else {
-        // prompt document password
-        // prompt('Enter Password for this document')
-        // .then((password) => {
-        // console.log(doc);
-        if (doc.password) {
-          const docCopy = JSON.parse(JSON.stringify(doc));
-          docCopy.collaborators.push(req.params.user);
-          res.json({ success: true, document: docCopy });
-        } else {
-          res.json({ success: false });
-        }
-        // })
+        // prompt document password on front end
+        res.json({ success: true, passNeeded: true, user: req.params.user, doc });
       }
     })
     .catch((err) => {
@@ -180,7 +169,6 @@ io.on('connection', (socket) => {
   // });
 
   // socket.username = req.user.username;
-
   socket.on('document', (requestedDoc) => {
     if (!requestedDoc) {
       return socket.emit('errorMessage', 'No room!');
@@ -188,16 +176,19 @@ io.on('connection', (socket) => {
     if (limit === 0) {
       return socket.emit('errorMessage', 'The document cannot support more than 6 editors');
     }
-
-    socket.join(requestedDoc, () => {
-      socket.to(requestedDoc).emit('message', {
-        content: `${socket.username} has joined`
+    const username = requestedDoc.username;
+    Document.findByIdAndUpdate(requestedDoc.doc.id,
+      { collaborators: requestedDoc.doc.collaborators }, (doc) => {
+        socket.join(doc, () => {
+          socket.to(doc).emit('message', {
+            content: `${username} has joined`,
+          });
+          color = colors.pop();
+          limit--;
+          socket.emit('color', color);
+        });
       });
-      color = colors.pop();
-      limit--;
-      socket.emit('color', color);
-    });
-  })
+  });
 
   // color
   socket.emit('color', color)
