@@ -18,6 +18,7 @@ export default class DocPortal extends React.Component {
       documents: [],
       title: '',
       docPortal: true,
+      user: '',
       socket: io('http://127.0.0.1:8080')
     };
     this.onChange = editorState => this.setState({ editorState });
@@ -29,7 +30,8 @@ export default class DocPortal extends React.Component {
     .then((docs) => {
       const user = JSON.parse(localStorage.getItem('user'));
       this.setState({
-        documents: docs, user,
+        documents: docs,
+        user: user
       });
     });
   }
@@ -42,6 +44,7 @@ export default class DocPortal extends React.Component {
 
   onCreate() {
     // prompt password
+    console.log("Create,", this.state.user.id);
     prompt({ title: 'Password Needed', label: 'Enter A Password' })
     .then((password) => {
       fetch(`http://localhost:8080/newDocument/${this.state.user.id}`, {
@@ -59,9 +62,11 @@ export default class DocPortal extends React.Component {
         if (responseJson.success) {
           console.log('Successfully created doc');
           var docs = this.state.documents.slice();
-          docs.push(responseJson.doc)
+          docs.push(responseJson.document)
           this.setState({
-            documents: docs
+            documents: docs,
+            selectedDocTitle: responseJson.document.title,
+            selectedDocId: responseJson.document._id
           })
           this.toggle();  // move to docEditor
         }
@@ -81,14 +86,15 @@ export default class DocPortal extends React.Component {
     }).then(response => response.json())
     .then((responseJson) => {
       if (responseJson.passNeeded) {
-        const doc = responseJson.doc;
+        const doc = responseJson.document;
+        console.log(doc);
         prompt({ title: 'Password Needed', label: 'Enter Password for this document' })
         .then((password) => {
           if (password === doc.password) {
             const docCopy = JSON.parse(JSON.stringify(doc));
             docCopy.collaborators.push(responseJson.user);
             this.setState({ selectedDocTitle: doc.title });
-            this.state.socket.emit('document', { username: responseJson.user.username, doc: docCopy });
+            // this.state.socket.emit('document', { username: responseJson.user.username, doc: docCopy });
             this.toggle();
           } else {
             alert('Password Was Incorrect');
@@ -96,7 +102,7 @@ export default class DocPortal extends React.Component {
         })
       } else if (responseJson.success) {
         this.setState({ selectedDocTitle: responseJson.document.title });
-        this.state.socket.emit('document', responseJson.document);
+        // this.state.socket.emit('document', responseJson.document);
         this.toggle();
       } else {
         console.log('fetching the document was unsuccessful');
@@ -114,8 +120,8 @@ export default class DocPortal extends React.Component {
   // onAddShared(){
   //
   // }
-  toDoc() {
-    this.setState({ docPortal: false })
+  toggle() {
+    this.setState({ docPortal: !this.state.docPortal })
   }
 
   toPortal(id) {

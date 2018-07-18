@@ -14,6 +14,7 @@ export default class Login extends React.Component {
   componentDidMount() {
     // localStorage.removeItem('user');
     const user = JSON.parse(localStorage.getItem('user'));
+    console.log("USER IS: ", user);
     if (user) {
       this.props.toDoc();
     }
