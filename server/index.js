@@ -164,16 +164,15 @@ io.on('connection', (socket) => {
   // Q: limit decreases every time : Load capacity
   // load document
   socket.on('document', (obj) => {
-    console.log('S-document', obj);
     Document.findById(obj.document._id)
       .then((doc) => {
-        console.log('Joined the document');
-        doc.collaborators.push(obj.user.id);
+        if (doc.collaborators.indexOf(obj.user.id) === -1 && obj.user.id !== doc.owner) {
+          doc.collaborators.push(obj.user.id);
+        }
         doc.editors.push(obj.user);
         return doc.save();
       })
       .then((updated) => {
-        console.log('Editors: ', updated.editors);
         socket.emit('document', { doc: updated, editors: updated.editors });
       })
       .catch(err => console.log('error', err));
@@ -214,6 +213,7 @@ io.on('connection', (socket) => {
 
   // save
   socket.on('save', obj => {
+    console.log('Socket Save Obj', obj);
     Document.findByIdAndUpdate(obj.id, { contents: obj.content })
       .then((doc) => {
         console.log('Updated doc to: ', doc);

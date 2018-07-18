@@ -1,5 +1,5 @@
 import React from 'react';
-import { Editor, EditorState, RichUtils, convertToRaw, convertFromRaw, Modifier } from 'draft-js';
+import { Editor, EditorState, RichUtils, convertToRaw, convertFromRaw, ContentState } from 'draft-js';
 // import createHighlightPlugin from 'draft-js-highlight-plugin';
 
 const io = require('socket.io-client');
@@ -35,19 +35,29 @@ export default class DocEditor extends React.Component {
 
       socket.emit('document', { user, document: this.props.doc });
       // socket.emit('document', this.props.id);
-      //call in document portal front-end side
+      // call in document portal front-end side
       socket.on('document', (obj) => {
-        this.setState({
-          document: obj.doc,
-          editors: obj.editors
-        })
-        console.log("The doc is: ", obj.doc);
+        if (obj.doc.contents) {
+          this.setState({
+            document: obj.doc,
+            editors: obj.editors,
+            editorState: EditorState.createWithContent(convertFromRaw({
+              entityMap: {},
+              blocks: obj.doc.contents.blocks,
+            })),
+          })
+        } else {
+          this.setState({
+            document: obj.doc,
+            editors: obj.editors,
+          })
+        }
       })
       //
       socket.on('color', (color) => {
         console.log('Color us: ', color);
         this.setState({ myColor: color })
-      })
+      });
 
       socket.on('content', (content) => {
         console.log('content: ', content);
@@ -81,7 +91,6 @@ export default class DocEditor extends React.Component {
     });
 
     socket.on('disconnect', () => { console.log('ws disconnect'); });
-
   }
 
   // Funtions
@@ -163,8 +172,9 @@ export default class DocEditor extends React.Component {
   save() {
     let currentContent = this.state.editorState.getCurrentContent();
     console.log("Save the content ", currentContent);
+    const doc = this.props.doc._id;
     // fetch post request: save
-    this.state.socket.emit('save', {content: currentContent, id: this.props.id});
+    this.state.socket.emit('save', { content: convertToRaw(currentContent), id: this.props.doc._id });
   }
 
   render() {

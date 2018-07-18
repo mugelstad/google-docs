@@ -82,7 +82,7 @@ export default class DocPortal extends React.Component {
     .then((responseJson) => {
       if (responseJson.success) {
         this.setState({ selectedDoc: responseJson.document });
-        this.state.socket.emit('document', { document: responseJson.document });
+        this.state.socket.emit('document', { document: responseJson.document, user: this.state.user });
         this.toggle();
       } else if (responseJson.passNeeded) {
         alert('You do not have access to this document');

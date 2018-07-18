@@ -36,8 +36,9 @@ var documentSchema = new mongoose.Schema({
     type: Array,
   },
   contents: {
-    type: String
+    type: Object
   },
+  history: Array,
   counter: {
     type: Number
   },
