@@ -17,7 +17,7 @@ export default class DocPortal extends React.Component {
       editorState: EditorState.createEmpty(),
       documents: [],
       title: '',
-      docPortal: false,
+      docPortal: true,
     };
     this.onChange = editorState => this.setState({ editorState });
   }
@@ -26,9 +26,9 @@ export default class DocPortal extends React.Component {
       method: 'GET',
     }).then(docsJ => docsJ.json())
     .then((docs) => {
-      console.log('DOCS: ', docs);
+      const user = JSON.parse(localStorage.getItem('user'));
       this.setState({
-        documents: docs,
+        documents: docs, user,
       });
     });
   }
@@ -43,7 +43,7 @@ export default class DocPortal extends React.Component {
     // prompt password
     prompt('Enter password')
     .then((password) => {
-      fetch('http://localhost:8080/newDocument', {
+      fetch(`http://localhost:8080/newDocument/${this.state.user.id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -70,11 +70,12 @@ export default class DocPortal extends React.Component {
   viewDoc(id) {
     // call in document portal front-end side
     this.setState({ selectedDocId: id });
-    fetch(`http://localhost:8080/document/${id}`, {
+    fetch(`http://localhost:8080/document/${id}/${this.state.user.id}`, {
       method: 'GET',
     }).then(response => response.json())
     .then((responseJson) => {
       if (responseJson.success) {
+        this.setState({ selectedDocTitle: responseJson.document.title });
         socket.emit('document', responseJson.document);
         this.toggle();
       } else {
@@ -119,7 +120,11 @@ export default class DocPortal extends React.Component {
 
           </div>
         :
-          <DocEditor toggle={() => this.toggle()} id={this.state.selectedDocId} /> }
+          <DocEditor
+            toggle={() => this.toggle()}
+            id={this.state.selectedDocId}
+            title={this.state.selectedDocTitle}
+          /> }
       </div>
     );
   }

@@ -12,13 +12,13 @@ export default class Login extends React.Component {
   }
 
   componentDidMount() {
+    // localStorage.removeItem('user');
     const user = JSON.parse(localStorage.getItem('user'));
-    console.log(user);
     if (user) {
-      console.log("USernmame: ", user.username);
       this.props.toDoc();
     }
   }
+
 
   handleUsername(e) {
     this.setState({
@@ -47,19 +47,21 @@ export default class Login extends React.Component {
     .then((response) => response.json())
     .then((responseJson) => {
       if (responseJson.success) {
-        console.log("Successfully logged in");
+        console.log('Successfully logged in');
+        console.log(responseJson)
         var user = JSON.stringify({
           username: this.state.typedUsername,
-          password: this.state.typedPassword
+          password: this.state.typedPassword,
+          id: responseJson.user._id,
         })
         localStorage.setItem('user', user);
         this.props.toDoc();
       } else {
-        console.log("No username!");
+        console.log('No username!');
       }
     })
     .catch((err) => {
-      console.log("Error: ", err);
+      console.log('Error: ', err);
     });
 
   }

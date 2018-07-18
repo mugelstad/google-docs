@@ -2,9 +2,12 @@ import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import passport from 'passport';
 import cookieParser from 'cookie-parser';
+import React from 'react';
+import { EditorState } from 'draft-js';
 
 // Express setup
 import express from 'express';
+import session from 'express-session';
 
 const app = express();
 // Socket IO setup
@@ -20,6 +23,7 @@ const models = require('./models/models');
 
 const User = models.User;
 const Document = models.Document;
+// const prompt = require('electron-prompt');
 
 // Passport setup
 
@@ -30,6 +34,7 @@ const LocalStrategy = require('passport-local').Strategy;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 } }));
 
 passport.serializeUser((user, done) => {
   done(null, user._id);
@@ -68,7 +73,7 @@ passport.use(new LocalStrategy((username, password, done) => {
 app.use(passport.initialize());
 app.use(passport.session());
 
-var url = 'http://localhost:8080'
+const url = 'http://localhost:8080'
 
 app.post('/signup', (req, res) => {
   // if (req.body.password === req.body.passwordRepeat && req.body.username && req.body.password) {
@@ -93,18 +98,25 @@ app.post('/signup', (req, res) => {
 });
 
 app.post('/login', passport.authenticate('local'), (req, res) => {
-  console.log('LOGIN: ', req.user)
-  res.json({success: true});
+  User.findOne({ username: req.body.username, password: req.body.password })
+  .exec((err, user) => {
+    res.json({ success: true, user });
+  });
 });
 
-app.post('/newDocument', (req, res) => {
+app.post('/newDocument/:user', (req, res) => {
   new Document({
     title: req.body.title,
     password: req.body.password,
-    owner: req.user,
+    owner: req.params.user,
   }).save()
     .then((doc) => {
-      res.json({ success: true, id: doc._id });
+      if (req.params.user) {
+        res.json({ success: true, document: doc });
+      } else {
+        res.json({ success: false, message: 'user not logged in' });
+      }
+
     })
     .catch((err) => {
       res.json({ success: false, error: err });
@@ -112,34 +124,42 @@ app.post('/newDocument', (req, res) => {
 })
 
 app.get('/documents', (req, res) => {
+  console.log('USER', req.user)
   Document.find()
     .then((docs) => {
       res.send(docs);
     });
 });
 
-app.get('/document/:id', (req, res) => {
+app.get('/document/:id/:user', (req, res) => {
   Document.findById(req.params.id)
     // .populate('collaborators')
     .then((doc) => {
       // fix this part
-      res.json({ success: true, document: doc });
-      // if (req.user._id in doc.collaborators) {
-      //   res.json({ success: true, document: doc })
-      // } else {
-      //   // prompt document password
-      //   if (req.user.password === doc.password) {
-      //     res.json({ success: true, document: doc })
-      //   } else {
-      //     res.json({ success: false })
-      //   }
-      // }
+      console.log(doc)
+
+      if (req.params.user in doc.collaborators || req.params.user === doc.owner._id) {
+        res.json({ success: true, document: doc });
+      } else {
+        // prompt document password
+        // prompt('Enter Password for this document')
+        // .then((password) => {
+        // console.log(doc);
+        if (doc.password) {
+          const docCopy = JSON.parse(JSON.stringify(doc));
+          docCopy.collaborators.push(req.params.user);
+          res.json({ success: true, document: docCopy });
+        } else {
+          res.json({ success: false });
+        }
+        // })
+      }
     })
     .catch((err) => {
-      console.log("ERROR in loading a doc: ", err)
-      res.json({success:false})
-    })
-})
+      console.log('ERROR in loading a doc: ', err);
+      res.json({ success: false })
+    });
+});
 
 // Socket IO setup
 server.listen(8080);
@@ -179,14 +199,12 @@ io.on('connection', (socket) => {
     });
   })
 
-  })
-
   // color
   socket.emit('color', color)
 
   // content
   socket.on('content', content => {
-    console.log("Content: ", content);
+    console.log('Content: ', content);
     socket.broadcast.emit('content', content)
   })
 
