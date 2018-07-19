@@ -9,10 +9,10 @@ const io = require('socket.io-client');
 export default class DocHistory extends React.Component {
   constructor(props) {
     super(props);
-    console.log(this.props.revisions[this.props.revisions.length-1]);
+    console.log(this.props.revisions[this.props.revisions.length - 1]);
     this.state = {
-      currVersion: this.props.revisions[this.props.revisions.length-1],
-      index: this.props.revisions.length-1,
+      currVersion: this.props.revisions[this.props.revisions.length - 1],
+      index: this.props.revisions.length - 1,
     };
   }
 
@@ -64,7 +64,7 @@ export default class DocHistory extends React.Component {
                   </Row>
 
                 </Col>
-                <Col xs={6} md={4} sm={3} style={{ overFlowY: 'scroll', maxHeight: 400 }}>
+                <Col xs={6} md={4} sm={3} style={{ overflowY: 'scroll', maxHeight: 500 }}>
                   {this.props.revisions.map((doc, index) => {
                     return (
                       <Alert
@@ -82,9 +82,9 @@ export default class DocHistory extends React.Component {
             </Grid>
           </Modal.Body>
           <Modal.Footer>
-          <Button onClick={() => this.props.hide()}>Close</Button>
-        </Modal.Footer>
-      </Modal>
+            <Button onClick={() => this.props.hide()}>Close</Button>
+          </Modal.Footer>
+        </Modal>
     );
   }
 }
