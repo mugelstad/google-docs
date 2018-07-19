@@ -26,7 +26,9 @@ export default class DocEditor extends React.Component {
       editors: [],
       user: {},
       history: [],
-      search: ''
+      search: '',
+      selection: SelectionState.createEmpty(),
+      yourStyle: null,
     };
     // this.onChange = editorState => this.setState({ editorState });
     this.handleKeyCommand = () => this.handleKeyCommand;
@@ -92,7 +94,9 @@ export default class DocEditor extends React.Component {
 
         var newEditor = EditorState.forceSelection(e, s);
         this.setState({
-          editorState: newEditor
+          editorState: newEditor,
+          selection: s,
+          yourStyle: content.inlineStyle.highlight
         })
       })
 
@@ -141,6 +145,7 @@ export default class DocEditor extends React.Component {
   onChange(editorState) {
     console.log('in on change');
 
+
     let selectionState = editorState.getSelection();
     //console.log("Selection state: ", selectionState);
     let currentContent = editorState.getCurrentContent();
@@ -156,9 +161,21 @@ export default class DocEditor extends React.Component {
     // Real-time Content changes
     // Real-time Cursor loc changes
 
+    // remove inline style
+    console.log("State: ", this.state.selection);
+    console.log("State: ", currentContent);
+    console.log(": ", this.state.yourStyle);
+
+    if (this.state.yourStyle) {
+      var modified = Modifier.removeInlineStyle(currentContent, this.state.selection, this.state.yourStyle);
+    } else {
+      var modified = currentContent;
+    }
+
+    console.log("M: ", modified);
     // WILL CHANGE THE INLINESTYLE BE CONCAT BASED ON MYCOLOR
     this.state.socket.emit('content', {
-      contentState: convertToRaw(currentContent),
+      contentState: convertToRaw(modified),
       selectionState: selectionState,
       inlineStyle: {cursor: `CURSOR${this.state.myColor}`, highlight: `HIGHLIGHT${this.state.myColor}`},
       start: start,
@@ -219,6 +236,33 @@ export default class DocEditor extends React.Component {
     var text = document.getElementById("editor").textContent;
     console.log("Text: ", text);
 
+
+    let input = this.state.search.split(' ');
+    console.log('INPUT', input)
+
+    text = text.split(' ');
+    console.log('TEXT', text)
+    let found = false;
+
+    for (var i=0; i<text.length; i++){
+      for (var j=0; j<input.length; j++){
+        if (text[i] === input[j]){
+          found = true;
+          break;
+        }
+      }
+    }
+
+    console.log(found)
+    //
+    // let selection = window.getSelection();
+    //
+    // var range = document.createRange();
+    // range.selectNode(text[0])
+    // selection.addRange(range)
+    // selection.addRange()
+    //
+    // console.log('selection', selectionRange)
 
 
   }
