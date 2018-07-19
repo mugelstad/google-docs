@@ -18,7 +18,7 @@ export default class DocPortal extends React.Component {
       documents: [],
       title: '',
       docPortal: true,
-      socket: io('http://127.0.0.1:8080')
+      socket: io('http://127.0.0.1:8080'),
     };
     this.onChange = editorState => this.setState({ editorState });
   }
@@ -28,7 +28,8 @@ export default class DocPortal extends React.Component {
     }).then(docsJ => docsJ.json())
     .then((docs) => {
       const user = JSON.parse(localStorage.getItem('user'));
-      const userDocs = docs.filter(doc => (doc.collaborators.indexOf(user.id) !== -1 || user.id === doc.owner));
+      const userDocs = docs.filter(doc =>
+        (doc.collaborators.indexOf(user.id) !== -1 || user.id === doc.owner));
       this.setState({
         documents: userDocs, user,
       });
