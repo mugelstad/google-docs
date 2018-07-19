@@ -41,7 +41,7 @@ export default class DocHistory extends React.Component {
           <Modal.Body>
             <Grid>
               <Row className="show-grid">
-                <Col xs={12} md={8} sm={6}>
+                <Col xs={6} sm={6} md={7}>
                   <Row
                     className="show-grid"
                     style={{
@@ -68,22 +68,22 @@ export default class DocHistory extends React.Component {
                       </div>
                     }
                   </Row>
-                  <Row className="show-grid">
-                    <Col md={6} xs={9} sm={5}>
+                  <Row className="show-grid" style={{ textAlign: 'center' }}>
+                    <Col xs={9} sm={5} md={6}>
                       <h4>Added</h4>
                     </Col>
-                    <Col md={6} xs={9} sm={5}>
+                    <Col xs={9} sm={5} md={6}>
                       <h4>Removed</h4>
                     </Col>
 
                   </Row>
 
                 </Col>
-                <Col xs={6} md={4} sm={3} style={{ overflowY: 'scroll', maxHeight: 500 }}>
+                <Col xs={3} sm={3} md={3} style={{ overflowY: 'scroll', maxHeight: 500 }}>
                   {this.props.revisions.map((doc, index) => {
                     return (
                       <Alert
-                        bsStyle={(this.state.index === index) ? 'success' : 'warning' }
+                        bsStyle={(this.state.index === index) ? 'success' : 'warning'}
                         onClick={() => this.selectVersion(index)}
                         style={{ cursor: 'pointer' }}
                       >
