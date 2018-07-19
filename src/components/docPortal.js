@@ -66,8 +66,7 @@ export default class DocPortal extends React.Component {
           docs.push(responseJson.document);
           this.setState({
             documents: docs,
-            selectedDocTitle: responseJson.document.title,
-            selectedDocId: responseJson.document._id
+            selectedDoc: responseJson.document
           })
           this.toggle();  // move to docEditor
         }
@@ -99,8 +98,6 @@ export default class DocPortal extends React.Component {
     // this.state.socket.on('message', (message) => {
     //   alert(message.content);
     // })
-
-
 
   }
 
@@ -166,6 +163,8 @@ export default class DocPortal extends React.Component {
           <DocEditor
             toggle={() => this.toggle()}
             doc={this.state.selectedDoc}
+            id={this.state.selectedDoc._id}
+            title={this.state.selectedDoc.title}
           /> }
       </div>
     );
