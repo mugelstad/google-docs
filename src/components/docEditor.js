@@ -1,17 +1,15 @@
 import React from 'react';
 import { Editor, EditorState, SelectionState, RichUtils, convertToRaw, convertFromRaw, Modifier } from 'draft-js';
-import { Button } from 'react-bootstrap';
 // import createHighlightPlugin from 'draft-js-highlight-plugin';
+
+const io = require('socket.io-client');
 
 // Components
 import ToolBar from './toolbar';
-import DocumentHistory from './docHistory';
 // import createHighlightPlugin from 'draft-js-highlight-plugin';
 
 // Custom Styles
 import styleMap from './stylemap';
-
-const io = require('socket.io-client');
 
 export default class DocEditor extends React.Component {
 
@@ -24,8 +22,6 @@ export default class DocEditor extends React.Component {
       myColor: null,
       document: {},
       editors: [],
-      user: {},
-      history: [],
       search: ''
     };
     // this.onChange = editorState => this.setState({ editorState });
@@ -45,7 +41,6 @@ export default class DocEditor extends React.Component {
         if (obj.doc.contents) {
           this.setState({
             document: obj.doc,
-            user,
             editors: obj.editors,
             editorState: EditorState.createWithContent(convertFromRaw({
               entityMap: {},
@@ -54,15 +49,10 @@ export default class DocEditor extends React.Component {
           })
         } else {
           this.setState({
-            user,
             document: obj.doc,
             editors: obj.editors,
           })
         }
-      })
-
-      socket.on('history', (history) => {
-        this.setState({ history });
       })
       //
       socket.on('color', (color) => {
@@ -107,7 +97,7 @@ export default class DocEditor extends React.Component {
     socket.on('disconnect', () => { console.log('ws disconnect'); });
   }
 
-  // Style Funtions
+  // Funtions
   makeEdit(value) {
     this.onChange(RichUtils.toggleInlineStyle(this.state.editorState, value));
   }
@@ -185,28 +175,12 @@ export default class DocEditor extends React.Component {
     // })
   }
 
-  // Operational Functions
-
-  handleClose() {
-    this.setState({ historyShow: false });
-  }
-
-  handleShow() {
-    this.setState({ historyShow: true });
-  }
-
   save() {
     let currentContent = this.state.editorState.getCurrentContent();
     console.log("Save the content ", currentContent);
     const doc = this.props.doc._id;
     // fetch post request: save
-    this.state.socket.emit('save', { content: convertToRaw(currentContent), id: this.props.doc._id, user: this.state.user });
-  }
-
-  // History Fucntions
-  getHistory() {
-    this.handleShow();
-    this.state.socket.emit('history', { docId: this.props.doc._id });
+    this.state.socket.emit('save', { content: convertToRaw(currentContent), id: this.props.doc._id });
   }
 
   handleSearch(e) {
@@ -240,7 +214,6 @@ export default class DocEditor extends React.Component {
           <button type="button" onClick={() => this.search()} >Search</button>
         </div>
         <button type="button" onClick={() => this.save()} >Save Changes</button>
-        <button type="button" onClick={() => this.getHistory()} >History</button>
         <div>
           <ToolBar
             edit={value => this.makeEdit(value)}
@@ -250,22 +223,14 @@ export default class DocEditor extends React.Component {
         </div>
         <div id='editor' style={{ border: '1px red solid', textAlign: this.state.align }}>
           <Editor
+            textAlignment="right"
             editorState={this.state.editorState}
-            onChange={() => this.onChange()}
+            onChange={this.onChange.bind(this)}
             handleKeyCommand={this.handleKeyCommand}
             customStyleMap={styleMap}
             blockStyleFn={this.myBlockStyleFn}
           />
         </div>
-        {this.state.historyShow ? <DocumentHistory
-          close={() => this.handleClose()}
-          open={() => this.handleShow()}
-          revisions={this.state.history}
-          show={this.state.historyShow}
-          title={this.props.doc.title}
-          hide={() => this.handleClose()}
-          doc={this.props.doc}
-        /> : <div />}
       </div>
     );
   }

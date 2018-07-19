@@ -12,12 +12,7 @@ export default class DocumentList extends React.Component{
     return (
       <div>
         {this.props.documents.map(doc =>
-          <ButtonGroup
-            vertical
-            onClick={() => this.props.view(doc._id)}
-            key={doc._id}
-            style={{ width: 100, marginRight: 20 }}
-          >
+          <ButtonGroup vertical onClick={() => this.props.view(doc._id)}>
             <Button><Glyphicon glyph="file" /></Button>
             <Button>{doc.title}</Button>
           </ButtonGroup>
