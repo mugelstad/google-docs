@@ -40,23 +40,27 @@ export default class DocEditor extends React.Component {
       console.log("Emitting document event, ", this.props.id);
       // socket.emit('document', {id: this.props.id, user: user, title: this.props.title});
       // socket.emit('document', this.props.id);
+      this.state.socket.emit('document', { document: this.props.doc, user: user, title: this.props.title, id: this.props.id, color: this.state.myColor });
       // call in document portal front-end side
       socket.on('document', (obj) => {
+        console.log('Color us: ', obj.color);
         if (obj.doc.contents) {
           this.setState({
             document: obj.doc,
-            user,
-            editors: obj.editors,
+            user: user,
+            editors: obj.doc.editors,
             editorState: EditorState.createWithContent(convertFromRaw({
               entityMap: {},
               blocks: obj.doc.contents.blocks,
             })),
+            myColor: obj.color
           })
         } else {
           this.setState({
             user,
             document: obj.doc,
             editors: obj.editors,
+            myColor: obj.color
           })
         }
       })
@@ -65,10 +69,6 @@ export default class DocEditor extends React.Component {
         this.setState({ history });
       })
       //
-      socket.on('color', (color) => {
-        console.log('Color us: ', color);
-        this.setState({ myColor: color })
-      });
 
       socket.on('content', (content) => {
 
@@ -142,16 +142,16 @@ export default class DocEditor extends React.Component {
     console.log('in on change');
 
     let selectionState = editorState.getSelection();
-    console.log("Selection state: ", selectionState);
+    //console.log("Selection state: ", selectionState);
     let currentContent = editorState.getCurrentContent();
     let anchorKey = selectionState.getAnchorKey();
     let currentContentBlock = currentContent.getBlockForKey(anchorKey);
     let start = selectionState.getStartOffset();
-    console.log("Start: ", start);
+    //console.log("Start: ", start);
     let end = selectionState.getEndOffset();
-    console.log("End: ", end);
+    //console.log("End: ", end);
     let selectedText = currentContentBlock.getText().slice(start, end);
-    console.log('selected: ', selectedText);
+    //console.log('selected: ', selectedText);
 
     // Real-time Content changes
     // Real-time Cursor loc changes
@@ -160,7 +160,7 @@ export default class DocEditor extends React.Component {
     this.state.socket.emit('content', {
       contentState: convertToRaw(currentContent),
       selectionState: selectionState,
-      inlineStyle: {cursor: "CURSORRED", highlight: "HIGHLIGHTRED"},
+      inlineStyle: {cursor: `CURSOR${this.state.myColor}`, highlight: `HIGHLIGHT${this.state.myColor}`},
       start: start,
       end: end
       // color: this.state.myColor
@@ -227,7 +227,7 @@ export default class DocEditor extends React.Component {
     // console.log('portal: ', this.state.docPortal);
     return (
       <div>
-        <button type="button" onClick={() => this.props.toggle(this.props.id)}>Back to Documents Portal</button>
+        <button type="button" onClick={() => this.props.toggle(this.state.myColor)}>Back to Documents Portal</button>
         <br />
         <h2>{this.props.doc.title}</h2>
         <br />

@@ -99,12 +99,17 @@ app.post('/signup', (req, res) => {
 app.post('/login', passport.authenticate('local'), (req, res) => {
   User.findOne({ username: req.body.username, password: req.body.password })
   .exec((err, user) => {
-    res.json({ success: true, user });
+    res.json({ success: true, user: user });
   });
 });
 
+app.post('/logout', (req, res) => {
+  req.logout();
+  res.json({success: true, })
+})
+
 app.post('/newDocument/:user', (req, res) => {
-  const colors = ['red', 'blue', 'yellow', 'black', 'green', 'white'];
+  const colors = ['red', 'orange', 'yellow', 'blue', 'green', 'purple'];
   new Document({
     title: req.body.title,
     password: req.body.password,
@@ -174,12 +179,19 @@ io.on('connection', (socket) => {
           if (room.length > 6) {
             return socket.emit('errorMessage', 'Document cannot hold more than 6 editors')
           }
-
+          console.log("THE DOC IS: ", doc);
           console.log("Clients: ", room);
           io.to(obj.id, 'a new user has joined');
-          socket.emit('document', {doc: doc, editor: obj.user.username})
-          // socket.emit('color', doc.colors.pop())
-          // return doc.save();
+          var color = '';
+          if (obj.color) {
+            color = obj.color;
+          } else {
+            color = doc.colors.pop();
+          }
+          console.log("SENDING COLOR: ", color);
+          socket.emit('document', {doc: doc, editor: obj.user.username, color: color});
+
+          return doc.save();
         //   if (doc.collaborators.indexOf(obj.user.id) === -1 && obj.user.id !== doc.owner) {
         //     doc.collaborators.push(obj.user.id);
         //   }
@@ -192,6 +204,11 @@ io.on('connection', (socket) => {
         //   socket.emit('document', { doc: updated, editors: updated.editors });
         });
       })
+      .then((updated) => {
+        console.log("UDPATED to: ", updated);
+      })
+      .catch(err =>  console.log('Could not get history', err));
+
   });
 
 
@@ -236,7 +253,18 @@ io.on('connection', (socket) => {
   })
 
   socket.on('exit', obj => {
-    // socket.leave(room)
+    Document.findById(obj.doc._id)
+      .then((doc) => {
+        socket.leave(obj.doc.title);
+        doc.colors.push(obj.color);
+        return doc.save()
+      })
+      .then((updated) => {
+        console.log("Updated with color: ", updated);
+      })
+      .catch((err) => {
+        console.log('ERROR in exiting  a doc: ', err);
+      })
   })
 
 });
