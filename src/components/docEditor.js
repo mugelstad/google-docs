@@ -42,7 +42,6 @@ export default class DocEditor extends React.Component {
       // socket.emit('document', this.props.id);
       // call in document portal front-end side
       socket.on('document', (obj) => {
-        console.log('Document socket on', obj)
         if (obj.doc.contents) {
           this.setState({
             document: obj.doc,

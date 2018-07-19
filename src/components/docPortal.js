@@ -111,6 +111,7 @@ export default class DocPortal extends React.Component {
       method: 'GET',
     }).then(response => response.json())
     .then((responseJson) => {
+      console.log('add shared',responseJson)
       if (responseJson.passNeeded) {
         const doc = responseJson.document;
         console.log(doc);
@@ -126,7 +127,7 @@ export default class DocPortal extends React.Component {
             alert('Password Was Incorrect');
           }
         });
-      } else if (responseJson.succes) {
+      } else if (responseJson.success) {
         const docCopy = JSON.parse(JSON.stringify(responseJson.document));
         console.log('DocCpy', docCopy);
         this.setState({ selectedDoc: docCopy });

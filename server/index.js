@@ -141,7 +141,7 @@ app.get('/document/:id/:user', (req, res) => {
       console.log(doc)
       if (doc.owner && (doc.collaborators.indexOf(req.params.user) !== -1 ||
          req.params.user === doc.owner._id)) {
-        res.json({ success: true, document: doc });
+        res.json({ success: true, passNeeded: false, document: doc });
       } else {
         // prompt document password on front end
         res.json({ success: true, passNeeded: true, user: req.params.user, document: doc });
