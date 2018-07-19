@@ -139,7 +139,7 @@ app.get('/document/:id/:user', (req, res) => {
     .then((doc) => {
       // fix this part
       console.log(doc)
-      if (doc.owner && (doc.collaborators.indexOf(req.params.id) !== -1 ||
+      if (doc.owner && (doc.collaborators.indexOf(req.params.user) !== -1 ||
          req.params.user === doc.owner._id)) {
         res.json({ success: true, document: doc });
       } else {
