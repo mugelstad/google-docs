@@ -189,8 +189,9 @@ export default class DocEditor extends React.Component {
     let currentContent = this.state.editorState.getCurrentContent();
     console.log("Save the content ", currentContent);
     const doc = this.props.doc._id;
+    const user = JSON.parse(localStorage.getItem('user'));
     // fetch post request: save
-    this.state.socket.emit('save', { content: convertToRaw(currentContent), id: this.props.doc._id });
+    this.state.socket.emit('save', { content: convertToRaw(currentContent), id: this.props.doc._id, user });
   }
 
   handleSearch(e) {
