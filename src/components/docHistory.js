@@ -1,6 +1,8 @@
 import React from 'react';
-import { EditorState, convertFromRaw } from 'draft-js';
+import { Editor, EditorState, convertFromRaw } from 'draft-js';
 import { Modal, Alert, Grid, Row, Col, Button } from 'react-bootstrap';
+
+import styleMap from './stylemap';
 
 const prompt = require('electron-prompt');
 const io = require('socket.io-client');
@@ -9,16 +11,15 @@ const io = require('socket.io-client');
 export default class DocHistory extends React.Component {
   constructor(props) {
     super(props);
-    console.log(this.props.revisions[this.props.revisions.length - 1]);
     this.state = {
       revisions: this.props.revisions.reverse(),
-      currVersion: this.props.revisions[this.props.revisions.length - 1],
+      currVersion: this.props.revisions[0],
       index: 0,
     };
   }
 
   componentDidMount() {
-    // this.setState({ currVersion: this.props.revisions[this.props.revisions.length-1] });
+    this.setState({ currVersion: this.props.revisions[0] });
   }
 
   restore(){
@@ -49,15 +50,31 @@ export default class DocHistory extends React.Component {
             <Grid>
               <Row className="show-grid">
                 <Col xs={12} md={8} sm={6}>
-                  <Row className="show-grid">
-                    <div style={{ paddingLeft: 20, paddingRight: 20 }}>
-                      {(convertFromRaw({
-                        entityMap: {},
-                        blocks: this.state.currVersion.blocks,
-                      })).getPlainText()
-                    })</div>
+                  <Row
+                    className="show-grid"
+                    style={{
+                      paddingLeft: 20,
+                      paddingRight: 20,
+                      border: '1px solid gray',
+                      borderRadius: 3,
+                      overflowY: 'scroll',
+                      maxHeight: 500,
+                    }}
+                  >
+                    {this.state.currVersion ?
+                      <Editor
+                        editorState={EditorState.createWithContent(convertFromRaw({
+                          entityMap: {},
+                          blocks: this.state.currVersion.blocks,
+                        }))}
+                        customStyleMap={styleMap}
+                        readOnly
+                      />
+                      : <div />
+                    }
+
                   </Row>
-                  <Row className="show-grid" style={{ textAlign: 'center'}}>
+                  <Row className="show-grid" style={{ textAlign: 'center' }}>
                     <Col md={6} xs={9} sm={5}>
                       <h4>Added</h4>
                     </Col>
@@ -70,14 +87,14 @@ export default class DocHistory extends React.Component {
                 </Col>
                 <Col xs={6} md={4} sm={3} style={{ overflowY: 'scroll', maxHeight: 500 }}>
                   {this.state.revisions.map((doc, index) => (
-                      <Alert
-                        bsStyle={(this.state.index === index) ? 'success' : 'warning' }
-                        onClick={() => this.selectVersion(index)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <strong>{new Date(doc.time).toTimeString()}</strong>: by {doc.user.username}
-                      </Alert>
-                    ))
+                    <Alert
+                      bsStyle={(this.state.index === index) ? 'success' : 'warning'}
+                      onClick={() => this.selectVersion(index)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <strong>{new Date(doc.time).toTimeString()}</strong>: by {doc.user.username}
+                    </Alert>
+                  ))
                 }
                 </Col>
               </Row>

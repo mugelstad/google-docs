@@ -61,7 +61,6 @@ export default class DocEditor extends React.Component {
       })
 
       socket.on('history', (history) => {
-        console.log(history);
         this.setState({ history });
       })
       //
@@ -227,9 +226,8 @@ export default class DocEditor extends React.Component {
         </div>
         <div style={{ border: '1px red solid', textAlign: this.state.align }}>
           <Editor
-            textAlignment="right"
             editorState={this.state.editorState}
-            onChange={this.onChange.bind(this)}
+            onChange={() => this.onChange()}
             handleKeyCommand={this.handleKeyCommand}
             customStyleMap={styleMap}
             blockStyleFn={this.myBlockStyleFn}
