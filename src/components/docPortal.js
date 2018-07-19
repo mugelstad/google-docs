@@ -121,24 +121,15 @@ export default class DocPortal extends React.Component {
             docCopy.collaborators.push(this.state.user.id);
             console.log('DocCpy', docCopy);
             this.setState({ selectedDoc: docCopy });
-            this.state.socket.emit('document',
-              { id: docCopy.id,
-                title: docCopy.title,
-                user: this.state.user,
-                document: docCopy });
             this.toggle();
           } else {
             alert('Password Was Incorrect');
           }
-        })
+        });
       } else if (responseJson.succes) {
         const docCopy = JSON.parse(JSON.stringify(responseJson.document));
         console.log('DocCpy', docCopy);
-        this.state.socket.emit('document',
-          { id: docCopy.id,
-            title: docCopy.title,
-            user: this.state.user,
-            document: docCopy });
+        this.setState({ selectedDoc: docCopy });
         this.toggle();
       } else {
         alert('Document was not added');

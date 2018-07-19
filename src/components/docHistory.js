@@ -40,7 +40,7 @@ export default class DocHistory extends React.Component {
           </Modal.Header>
           <Modal.Body>
             <Grid>
-              <Row className="show-grid" style={{ textAlign: 'center' }}>
+              <Row className="show-grid">
                 <Col xs={12} md={8} sm={6}>
                   <Row
                     className="show-grid"

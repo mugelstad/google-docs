@@ -178,6 +178,7 @@ io.on('connection', (socket) => {
             console.log('Clients: ', room);
             io.to(obj.id, 'a new user has joined');
 
+            // Checks if user is already in editors
             if (doc.editors.filter(item => item.id === obj.user.username).length === 0) {
               doc.editors.push(obj.user);
             }
@@ -217,6 +218,14 @@ io.on('connection', (socket) => {
         console.log('Updated doc to: ', doc);
       })
   })
+
+  // History
+  socket.on('history', obj => {
+    Document.findById(obj.docId, (err, doc) => {
+      socket.emit('history', doc.history);
+    })
+    .catch(err =>  console.log('Could not get history', err));
+  });
 
   socket.on('exit', obj => {
     // socket.leave(room)
