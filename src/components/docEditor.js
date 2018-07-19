@@ -37,12 +37,13 @@ export default class DocEditor extends React.Component {
     const user = JSON.parse(localStorage.getItem('user'));
     socket.on('connect', () => {
       console.log('ws connect');
-      console.log("Emitting document event, ", this.props.id);
+      console.log('Emitting document event, ', this.props.id);
       // socket.emit('document', {id: this.props.id, user: user, title: this.props.title});
       // socket.emit('document', this.props.id);
       this.state.socket.emit('document', { document: this.props.doc, user: user, title: this.props.title, id: this.props.id, color: this.state.myColor });
       // call in document portal front-end side
       socket.on('document', (obj) => {
+
         console.log('Color us: ', obj.color);
         if (obj.doc.contents) {
           this.setState({
@@ -65,7 +66,6 @@ export default class DocEditor extends React.Component {
       });
 
       socket.on('history', (history) => {
-        console.log(history);
         this.setState({ history });
       });
 
@@ -108,6 +108,13 @@ export default class DocEditor extends React.Component {
     });
 
     socket.on('disconnect', () => { console.log('ws disconnect'); });
+
+    // autoSave every 5 minutes
+    this.autoSave = setInterval(() => this.save(), 300000);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.autoSave);
   }
 
   // Funtions
@@ -146,7 +153,7 @@ export default class DocEditor extends React.Component {
 
 
     let selectionState = editorState.getSelection();
-    //console.log("Selection state: ", selectionState);
+    // console.log("Selection state: ", selectionState);
     let currentContent = editorState.getCurrentContent();
     let anchorKey = selectionState.getAnchorKey();
     let currentContentBlock = currentContent.getBlockForKey(anchorKey);
@@ -202,12 +209,16 @@ export default class DocEditor extends React.Component {
   }
 
   save() {
-    let currentContent = this.state.editorState.getCurrentContent();
-    console.log("Save the content ", currentContent);
-    const doc = this.props.doc._id;
-    const user = JSON.parse(localStorage.getItem('user'));
-    // fetch post request: save
-    this.state.socket.emit('save', { content: convertToRaw(currentContent), id: this.props.doc._id, user });
+    console.log(' Trying to save', this.state);
+    if (this.state) {
+      const currentContent = this.state.editorState.getCurrentContent();
+      console.log('Save the content ', currentContent);
+      const doc = this.props.doc._id;
+      const user = JSON.parse(localStorage.getItem('user'));
+      // fetch post request: save
+      this.setState({ lastSaved: new Date() });
+      this.state.socket.emit('save', { content: convertToRaw(currentContent), id: this.props.doc._id, user });
+    }
   }
 
   handleSearch(e) {
@@ -293,7 +304,7 @@ export default class DocEditor extends React.Component {
             blockEdit={value => this.toggleBlock(value)}
           />
         </div>
-        <div id='editor' style={{ border: '1px red solid', textAlign: this.state.align }}>
+        <div id="editor" style={{ border: '1px red solid', textAlign: this.state.align, maxHeight: 400, overflowY: 'scroll' }}>
           <Editor
             textAlignment="right"
             editorState={this.state.editorState}
@@ -303,6 +314,7 @@ export default class DocEditor extends React.Component {
             blockStyleFn={this.myBlockStyleFn}
           />
         </div>
+        <p>Last Saved: <i>{this.state.lastSaved ? this.state.lastSaved.toTimeString() : ''}</i></p>
         {this.state.historyShow ? <DocumentHistory
           close={() => this.handleClose()}
           revisions={this.state.history}
