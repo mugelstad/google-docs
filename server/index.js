@@ -169,7 +169,9 @@ io.on('connection', (socket) => {
         if (doc.collaborators.indexOf(obj.user.id) === -1 && obj.user.id !== doc.owner) {
           doc.collaborators.push(obj.user.id);
         }
-        doc.editors.push(obj.user);
+        if ((doc.editors.filter(item => item.id === obj.user.id)).length === 0) {
+          doc.editors.push(obj.user);
+        }
         return doc.save();
       })
       .then((updated) => {
@@ -213,11 +215,26 @@ io.on('connection', (socket) => {
 
   // save
   socket.on('save', obj => {
-    console.log('Socket Save Obj', obj);
     Document.findByIdAndUpdate(obj.id, { contents: obj.content })
       .then((doc) => {
+        doc.history.push(
+          {
+            user: obj.user,
+            time: new Date(),
+            title: doc.title,
+            blocks: doc.contents.blocks,
+          }
+        );
+        doc.save();
         console.log('Updated doc to: ', doc);
-      })
+      });
+  });
+
+  socket.on('history', obj => {
+    Document.findById(obj.docId, (err, doc) => {
+      socket.emit('history', doc.history);
+    })
+    .catch(err =>  console.log('Could not get history', err));
   })
 
   socket.on('exit', obj => {
