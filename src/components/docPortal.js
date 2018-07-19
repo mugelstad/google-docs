@@ -18,6 +18,7 @@ export default class DocPortal extends React.Component {
       documents: [],
       title: '',
       docPortal: true,
+      user: '',
       socket: io('http://127.0.0.1:8080')
     };
     this.onChange = editorState => this.setState({ editorState });
@@ -30,7 +31,8 @@ export default class DocPortal extends React.Component {
       const user = JSON.parse(localStorage.getItem('user'));
       const userDocs = docs.filter(doc => (doc.collaborators.indexOf(user.id) !== -1 || user.id === doc.owner));
       this.setState({
-        documents: userDocs, user,
+        documents: docs,
+        user: user
       });
     });
   }
@@ -43,6 +45,7 @@ export default class DocPortal extends React.Component {
 
   onCreate() {
     // prompt password
+    console.log("Create,", this.state.user.id);
     prompt({ title: 'Password Needed', label: 'Enter A Password' })
     .then((password) => {
       fetch(`http://localhost:8080/newDocument/${this.state.user.id}`, {
@@ -62,7 +65,9 @@ export default class DocPortal extends React.Component {
           var docs = this.state.documents.slice();
           docs.push(responseJson.document);
           this.setState({
-            documents: docs
+            documents: docs,
+            selectedDocTitle: responseJson.document.title,
+            selectedDocId: responseJson.document._id
           })
           this.toggle();  // move to docEditor
         }
@@ -106,6 +111,7 @@ export default class DocPortal extends React.Component {
     .then((responseJson) => {
       if (responseJson.passNeeded) {
         const doc = responseJson.document;
+        console.log(doc);
         prompt({ title: 'Password Needed', label: 'Enter Password for this document' })
         .then((password) => {
           if (password === doc.password) {

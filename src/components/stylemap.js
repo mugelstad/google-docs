@@ -93,6 +93,12 @@ const styleMap = {
     listStyleType: 'decimal',
     listStylePosition: 'inside',
   },
+  CURSORRED: {
+    color: 'red'
+  },
+  HIGHLIGHTRED: {
+    backgroundColor: 'red'
+  }
 };
 
 export default styleMap;

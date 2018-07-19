@@ -44,7 +44,11 @@ var documentSchema = new mongoose.Schema({
   },
   editors: {
     type: Array
+  },
+  colors: {
+    type: Array
   }
+
 })
 
 var User = mongoose.model('User', userSchema);

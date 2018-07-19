@@ -104,10 +104,12 @@ app.post('/login', passport.authenticate('local'), (req, res) => {
 });
 
 app.post('/newDocument/:user', (req, res) => {
+  const colors = ['red', 'blue', 'yellow', 'black', 'green', 'white'];
   new Document({
     title: req.body.title,
     password: req.body.password,
     owner: req.params.user,
+    colors: colors
   }).save()
     .then((doc) => {
       if (req.params.user) {
@@ -154,56 +156,43 @@ app.get('/document/:id/:user', (req, res) => {
 // Socket IO setup
 server.listen(8080);
 
-const colors = ['red', 'blue', 'yellow', 'black', 'green', 'white'];
-let color;
-let editors = [];
+
 
 io.on('connection', (socket) => {
   console.log('connected');
 
   // Q: limit decreases every time : Load capacity
   // load document
-  socket.on('document', (obj) => {
-    Document.findById(obj.document._id)
+  socket.on('document', obj => {
+    Document.findById(obj.id)
       .then((doc) => {
-        if (doc.collaborators.indexOf(obj.user.id) === -1 && obj.user.id !== doc.owner) {
-          doc.collaborators.push(obj.user.id);
-        }
-        doc.editors.push(obj.user);
-        return doc.save();
+        socket.join(obj.title, () => {
+          var room = io.sockets.adapter.rooms[obj.title];
+          var rooms = io.sockets.adapter.rooms
+          console.log("Rooms: ", rooms);
+          console.log("L:", room.length);
+          if (room.length > 6) {
+            return socket.emit('errorMessage', 'Document cannot hold more than 6 editors')
+          }
+          console.log("Clients: ", room);
+          io.to(obj.id, 'a new user has joined');
+          socket.emit('document', {doc: doc, editor: obj.user.username})
+          socket.emit('color', doc.colors.pop())
+          return doc.save();
+        });
       })
-      .then((updated) => {
-        socket.emit('document', { doc: updated, editors: updated.editors });
-      })
-      .catch(err => console.log('error', err));
+  });
+
+
+  // highlight
+  socket.on('highlight', highlight => {
+    socket.broadcast.emit('highlight', highlight)
   })
 
-  // var room = io.sockets.adapter.rooms['my_room'];
-
-  // socket.on('document', obj => {
-  //     Document.findById(obj.id)
-  //       .then((doc) => {
-  //         socket.room = obj.id;
-  //         if (io.sockets.adapter.rooms[obj.id])
-  //         socket.join(obj.id, () => {
-  //           io.to(requestedRoom, 'a new user has joined');
-  //         });
-  //       })
-  //   });
-
-  // color
-  color = colors.pop();
-  socket.emit('color', color)
-
-  // // highlight
-  // socket.on('highlight', highlight => {
-  //   socket.broadcast.emit('highlight', highlight)
-  // })
-  //
-  // // cursor
-  // socket.on('cursor', cursor => {
-  //   socket.broadcast.emit('cursor', cursor)
-  // })
+  // cursor
+  socket.on('cursor', cursor => {
+    socket.broadcast.emit('cursor', cursor)
+  })
 
   // content
   socket.on('content', content => {
@@ -221,18 +210,7 @@ io.on('connection', (socket) => {
   })
 
   socket.on('exit', obj => {
-    Document.findById(obj.docID)
-      .then((doc) => {
-        doc.counter = doc.counter - 1;
-        var index = doc.editors.indexOf(doc.user);
-        if (index > -1) {
-          doc.editors.splice(index, 1);
-        }
-        return doc.save()
-      })
-      .then((updated) => {
-        console.log("Updated doc to: ", updated);
-      })
+    // socket.leave(room)
   })
 
 });

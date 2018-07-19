@@ -1,5 +1,5 @@
 import React from 'react';
-import { Editor, EditorState, RichUtils, convertToRaw, convertFromRaw, ContentState } from 'draft-js';
+import { Editor, EditorState, SelectionState, RichUtils, convertToRaw, convertFromRaw, Modifier } from 'draft-js';
 // import createHighlightPlugin from 'draft-js-highlight-plugin';
 
 const io = require('socket.io-client');
@@ -21,7 +21,8 @@ export default class DocEditor extends React.Component {
       docPortal: false,
       myColor: null,
       document: {},
-      editors: []
+      editors: [],
+      search: ''
     };
     // this.onChange = editorState => this.setState({ editorState });
     this.handleKeyCommand = () => this.handleKeyCommand;
@@ -32,8 +33,8 @@ export default class DocEditor extends React.Component {
     const user = JSON.parse(localStorage.getItem('user'));
     socket.on('connect', () => {
       console.log('ws connect');
-
-      socket.emit('document', { user, document: this.props.doc });
+      console.log("Emitting document event, ", this.props.id);
+      socket.emit('document', {id: this.props.id, user: user, title: this.props.title});
       // socket.emit('document', this.props.id);
       // call in document portal front-end side
       socket.on('document', (obj) => {
@@ -60,27 +61,30 @@ export default class DocEditor extends React.Component {
       });
 
       socket.on('content', (content) => {
-        console.log('content: ', content);
-        var e = EditorState.createWithContent(convertFromRaw(content));
-        var s = this.state.editorState.getSelection();
+
+        var c = convertFromRaw(content.contentState);
+        console.log("C: ", c);
+        var selectionState = SelectionState.createEmpty();
+        var s = selectionState.merge(content.selectionState);
+        console.log("S: ", s);
+
+        if (content.start === content.end) {
+          // var content = Modifier.applyInlineStyle(c, s, content.inlineStyle.cursor);
+          var modified = Modifier.insertText(c, s, '|')
+        } else {
+          var modified = Modifier.applyInlineStyle(c, s, content.inlineStyle.highlight);
+        }
+
+        console.log("Content: ", modified);
+        var e = EditorState.createWithContent(modified);
+        console.log("E", e);
+        // var s = this.state.editorState.getSelection();
+
         var newEditor = EditorState.forceSelection(e, s);
         this.setState({
           editorState: newEditor
         })
       })
-
-      socket.on('cursor', (cursor) => {
-        // inline styling?
-        // add a line
-      })
-
-      // socket.on('highlight', (highlight) => {
-      //   Modifier.applyInlineStyle({
-      //     contentState: highlight.currentContent,
-      //     selectionState: highlight.selectionState,
-      //     inlineStyle: highlight.inlineStyle
-      //   })
-      // })
 
     });
 
@@ -140,22 +144,24 @@ export default class DocEditor extends React.Component {
     console.log('selected: ', selectedText);
 
     // Real-time Content changes
-    this.state.socket.emit('content', convertToRaw(currentContent));
-
     // Real-time Cursor loc changes
-    // this.state.socket.emit('cursor', {
-    // user: this.state.document.owner,
-    // color: this.state.myColor,
-    // location: {
-    //   start: start, end: end}
-    // })
+
+    // WILL CHANGE THE INLINESTYLE BE CONCAT BASED ON MYCOLOR
+    this.state.socket.emit('content', {
+      contentState: convertToRaw(currentContent),
+      selectionState: selectionState,
+      inlineStyle: {cursor: "CURSORRED", highlight: "HIGHLIGHTRED"},
+      start: start,
+      end: end
+      // color: this.state.myColor
+    })
 
     // Real-time Highlight changes
     // this.state.socket.emit('highlight',
     // {
-    //   contentState: currentContent,
+    //   contentState: convertToRaw(currentContent),
     //   selectionState: selectionState,
-    //   inlineStyle: `${this.state.myColor}`
+    //   inlineStyle: 'HIGHLIGHT'
     // })
 
     this.setState({
@@ -177,6 +183,20 @@ export default class DocEditor extends React.Component {
     this.state.socket.emit('save', { content: convertToRaw(currentContent), id: this.props.doc._id });
   }
 
+  handleSearch(e) {
+    this.setState({
+      search: e.target.value
+    })
+  }
+
+  search() {
+    var text = document.getElementById("editor").textContent;
+    console.log("Text: ", text);
+
+
+
+  }
+
   render() {
     // console.log('portal: ', this.state.docPortal);
     return (
@@ -189,6 +209,10 @@ export default class DocEditor extends React.Component {
         <p>Current editors: <ul>{this.state.editors.map((editor) => {
           <li>{editor}</li>
         })}</ul></p>
+        <div>
+          <input type="text" placeholder="Find in document" onChange={(e) => this.handleSearch(e)} value={this.state.search} ></input>
+          <button type="button" onClick={() => this.search()} >Search</button>
+        </div>
         <button type="button" onClick={() => this.save()} >Save Changes</button>
         <div>
           <ToolBar
@@ -197,7 +221,7 @@ export default class DocEditor extends React.Component {
             blockEdit={value => this.toggleBlock(value)}
           />
         </div>
-        <div style={{ border: '1px red solid', textAlign: this.state.align }}>
+        <div id='editor' style={{ border: '1px red solid', textAlign: this.state.align }}>
           <Editor
             textAlignment="right"
             editorState={this.state.editorState}
