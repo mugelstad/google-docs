@@ -6,6 +6,7 @@ const io = require('socket.io-client');
 
 // Components
 import ToolBar from './toolbar';
+import DocumentHistory from './docHistory';
 // import createHighlightPlugin from 'draft-js-highlight-plugin';
 
 // Custom Styles
@@ -22,6 +23,7 @@ export default class DocEditor extends React.Component {
       myColor: null,
       document: {},
       editors: [],
+      history: [],
       search: ''
     };
     // this.onChange = editorState => this.setState({ editorState });
@@ -56,7 +58,13 @@ export default class DocEditor extends React.Component {
             editors: obj.doc.editors,
           })
         }
-      })
+      });
+
+      socket.on('history', (history) => {
+        console.log(history);
+        this.setState({ history });
+      });
+
       //
       socket.on('color', (color) => {
         console.log('Color us: ', color);
@@ -192,11 +200,22 @@ export default class DocEditor extends React.Component {
     })
   }
 
+  handleClose() {
+    this.setState({ historyShow: false });
+  }
+
+  handleShow() {
+    this.setState({ historyShow: true });
+  }
+
+  getHistory() {
+    this.handleShow();
+    this.state.socket.emit('history', { docId: this.props.doc._id });
+  }
+
   search() {
     var text = document.getElementById('editor').textContent;
     console.log('Text: ', text);
-
-
 
   }
 
@@ -224,6 +243,7 @@ export default class DocEditor extends React.Component {
           <button type="button" onClick={() => this.search()} >Search</button>
         </div>
         <button type="button" onClick={() => this.save()} >Save Changes</button>
+        <button type="button" onClick={() => this.getHistory()} >History</button>
         <div>
           <ToolBar
             edit={value => this.makeEdit(value)}
@@ -241,6 +261,14 @@ export default class DocEditor extends React.Component {
             blockStyleFn={this.myBlockStyleFn}
           />
         </div>
+        {this.state.historyShow ? <DocumentHistory
+          close={() => this.handleClose()}
+          revisions={this.state.history}
+          show={this.state.historyShow}
+          title={this.props.doc.title}
+          hide={() => this.handleClose()}
+          doc={this.props.doc}
+        /> : <div />}
       </div>
     );
   }

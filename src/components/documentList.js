@@ -1,11 +1,10 @@
 import React from 'react';
-import { InputGroup, FormGroup, Glyphicon, FormControl, Button, ButtonGroup } from 'react-bootstrap';
+import { Glyphicon, Button, ButtonGroup } from 'react-bootstrap';
 
 
 export default class DocumentList extends React.Component{
   constructor(props){
     super(props);
-
   }
 
   render() {
