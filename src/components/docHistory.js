@@ -11,13 +11,14 @@ export default class DocHistory extends React.Component {
     super(props);
     console.log(this.props.revisions[this.props.revisions.length - 1]);
     this.state = {
+      revisions: this.props.revisions.reverse(),
       currVersion: this.props.revisions[this.props.revisions.length - 1],
-      index: this.props.revisions.length - 1,
+      index: 0,
     };
   }
 
   componentDidMount() {
-    this.setState({ currVersion: this.props.revisions[this.props.revisions.length-1] });
+    // this.setState({ currVersion: this.props.revisions[this.props.revisions.length-1] });
   }
 
   restore(){
@@ -25,7 +26,7 @@ export default class DocHistory extends React.Component {
   }
 
   selectVersion(index) {
-    this.setState({ currVersion: this.props.revisions[index], index });
+    this.setState({ currVersion: this.state.revisions[index], index });
   }
 
   render() {
@@ -38,14 +39,17 @@ export default class DocHistory extends React.Component {
           onHide={() => this.props.hide()}
         >
           <Modal.Header closeButton>
-            <Modal.Title id="contained-modal-title-lg">History</Modal.Title>
+            <Modal.Title
+              id="contained-modal-title-lg"
+            >
+              History of {this.props.title} as of {date.toLocaleString()}
+            </Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Grid>
               <Row className="show-grid">
                 <Col xs={12} md={8} sm={6}>
                   <Row className="show-grid">
-                    <h4>{this.props.title} as of {date.toLocaleString()}</h4>
                     <div style={{ paddingLeft: 20, paddingRight: 20 }}>
                       {(convertFromRaw({
                         entityMap: {},
@@ -65,8 +69,7 @@ export default class DocHistory extends React.Component {
 
                 </Col>
                 <Col xs={6} md={4} sm={3} style={{ overflowY: 'scroll', maxHeight: 500 }}>
-                  {this.props.revisions.map((doc, index) => {
-                    return (
+                  {this.state.revisions.map((doc, index) => (
                       <Alert
                         bsStyle={(this.state.index === index) ? 'success' : 'warning' }
                         onClick={() => this.selectVersion(index)}
@@ -74,8 +77,7 @@ export default class DocHistory extends React.Component {
                       >
                         <strong>{new Date(doc.time).toTimeString()}</strong>: by {doc.user.username}
                       </Alert>
-                    );
-                  })
+                    ))
                 }
                 </Col>
               </Row>
