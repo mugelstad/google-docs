@@ -12,10 +12,14 @@ export default class DocumentList extends React.Component{
     return (
       <div>
         {this.props.documents.map(doc =>
-          <ButtonGroup vertical onClick={() => this.props.view(doc._id)}>
+          (<ButtonGroup
+            vertical
+            onClick={() => this.props.view(doc._id)}
+            style={{ marginRight: 20, width: 100 }}
+          >
             <Button><Glyphicon glyph="file" /></Button>
             <Button>{doc.title}</Button>
-          </ButtonGroup>
+          </ButtonGroup>)
         )}
       </div>
 

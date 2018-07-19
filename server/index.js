@@ -163,23 +163,31 @@ io.on('connection', (socket) => {
 
   // Q: limit decreases every time : Load capacity
   // load document
-  socket.on('document', obj => {
+  socket.on('document', (obj) => {
     Document.findById(obj.id)
       .then((doc) => {
-        socket.join(obj.title, () => {
-          var room = io.sockets.adapter.rooms[obj.title];
-          var rooms = io.sockets.adapter.rooms
-          console.log("Rooms: ", rooms);
-          console.log("L:", room.length);
-          if (room.length > 6) {
-            return socket.emit('errorMessage', 'Document cannot hold more than 6 editors')
-          }
-          console.log("Clients: ", room);
-          io.to(obj.id, 'a new user has joined');
-          socket.emit('document', {doc: doc, editor: obj.user.username})
-          socket.emit('color', doc.colors.pop())
-          return doc.save();
-        });
+        if (doc){
+          socket.join(obj.title, () => {
+            var room = io.sockets.adapter.rooms[obj.title];
+            var rooms = io.sockets.adapter.rooms
+            console.log('Rooms: ', rooms);
+            console.log('L:', room.length);
+            if (room.length > 6) {
+              return socket.emit('errorMessage', 'Document cannot hold more than 6 editors')
+            }
+            console.log('Clients: ', room);
+            io.to(obj.id, 'a new user has joined');
+
+            if (doc.editors.filter(item => item.id === obj.user.username).length === 0) {
+              doc.editors.push(obj.user);
+            }
+            socket.emit('document', { doc, editor: obj.user.username });
+            // socket.emit('color', doc.colors.pop())
+            return doc.save();
+          });
+        } else {
+          console.log('Document is Null');
+        }
       })
   });
 

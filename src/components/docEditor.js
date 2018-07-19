@@ -34,7 +34,7 @@ export default class DocEditor extends React.Component {
     socket.on('connect', () => {
       console.log('ws connect');
       console.log("Emitting document event, ", this.props.id);
-      socket.emit('document', {id: this.props.id, user: user, title: this.props.title});
+      // socket.emit('document', {id: this.props.id, user: user, title: this.props.title});
       // socket.emit('document', this.props.id);
       // call in document portal front-end side
       socket.on('document', (obj) => {

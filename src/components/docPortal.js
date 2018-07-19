@@ -18,8 +18,7 @@ export default class DocPortal extends React.Component {
       documents: [],
       title: '',
       docPortal: true,
-      user: '',
-      socket: io('http://127.0.0.1:8080')
+      socket: io('http://127.0.0.1:8080'),
     };
     this.onChange = editorState => this.setState({ editorState });
   }
@@ -29,9 +28,12 @@ export default class DocPortal extends React.Component {
     }).then(docsJ => docsJ.json())
     .then((docs) => {
       const user = JSON.parse(localStorage.getItem('user'));
-      const userDocs = docs.filter(doc => (doc.collaborators.indexOf(user.id) !== -1 || user.id === doc.owner));
+
+      // Document Filter for documents user is owner or collaborator
+      const userDocs = docs.filter(doc =>
+        (doc.collaborators.indexOf(user.id) !== -1 || user.id === doc.owner));
       this.setState({
-        documents: docs,
+        documents: userDocs,
         user: user
       });
     });
@@ -119,7 +121,11 @@ export default class DocPortal extends React.Component {
             docCopy.collaborators.push(this.state.user.id);
             console.log('DocCpy', docCopy);
             this.setState({ selectedDoc: docCopy });
-            this.state.socket.emit('document', { user: this.state.user, document: docCopy });
+            this.state.socket.emit('document',
+              { id: docCopy.id,
+                title: docCopy.title,
+                user: this.state.user,
+                document: docCopy });
             this.toggle();
           } else {
             alert('Password Was Incorrect');
@@ -128,7 +134,11 @@ export default class DocPortal extends React.Component {
       } else if (responseJson.succes) {
         const docCopy = JSON.parse(JSON.stringify(responseJson.document));
         console.log('DocCpy', docCopy);
-        this.state.socket.emit('document', { user: this.state.user, document: docCopy });
+        this.state.socket.emit('document',
+          { id: docCopy.id,
+            title: docCopy.title,
+            user: this.state.user,
+            document: docCopy });
         this.toggle();
       } else {
         alert('Document was not added');
@@ -166,6 +176,8 @@ export default class DocPortal extends React.Component {
           <DocEditor
             toggle={() => this.toggle()}
             doc={this.state.selectedDoc}
+            id={this.state.selectedDoc._id}
+            title={this.state.selectedDoc.title}
           /> }
       </div>
     );
