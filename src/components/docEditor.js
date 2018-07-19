@@ -38,7 +38,7 @@ export default class DocEditor extends React.Component {
     socket.on('connect', () => {
       console.log('ws connect');
       console.log("Emitting document event, ", this.props.id);
-      socket.emit('document', {id: this.props.id, user: user, title: this.props.title});
+      // socket.emit('document', {id: this.props.id, user: user, title: this.props.title});
       // socket.emit('document', this.props.id);
       // call in document portal front-end side
       socket.on('document', (obj) => {
@@ -232,9 +232,9 @@ export default class DocEditor extends React.Component {
         <h2>{this.props.doc.title}</h2>
         <br />
         <p>Shareable Document ID: {this.props.doc._id}</p>
-        <p>Current editors: <ul>{this.state.editors.map((editor) => {
+        {/* <p>Current editors: <ul>{this.state.editors.map((editor) => {
           <li>{editor}</li>
-        })}</ul></p>
+        })}</ul></p> */}
         <div>
           <input type="text" placeholder="Find in document" onChange={(e) => this.handleSearch(e)} value={this.state.search} ></input>
           <button type="button" onClick={() => this.search()} >Search</button>
@@ -251,7 +251,7 @@ export default class DocEditor extends React.Component {
         <div id='editor' style={{ border: '1px red solid', textAlign: this.state.align }}>
           <Editor
             editorState={this.state.editorState}
-            onChange={() => this.onChange()}
+            onChange={this.onChange.bind(this)}
             handleKeyCommand={this.handleKeyCommand}
             customStyleMap={styleMap}
             blockStyleFn={this.myBlockStyleFn}

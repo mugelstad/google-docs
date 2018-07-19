@@ -31,7 +31,7 @@ export default class DocPortal extends React.Component {
       const user = JSON.parse(localStorage.getItem('user'));
       const userDocs = docs.filter(doc => (doc.collaborators.indexOf(user.id) !== -1 || user.id === doc.owner));
       this.setState({
-        documents: docs,
+        documents: userDocs,
         user: user
       });
     });
@@ -115,7 +115,9 @@ export default class DocPortal extends React.Component {
             const docCopy = JSON.parse(JSON.stringify(doc));
             docCopy.collaborators.push(this.state.user.id);
             console.log('DocCpy', docCopy);
-            this.setState({ selectedDoc: docCopy });
+            var docs = this.state.documents.slice();
+            docs.push(docCopy);
+            this.setState({ selectedDoc: docCopy, documents: docs});
             this.state.socket.emit('document', { user: this.state.user, document: docCopy });
             this.toggle();
           } else {

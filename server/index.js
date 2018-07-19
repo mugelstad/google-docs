@@ -178,8 +178,8 @@ io.on('connection', (socket) => {
           console.log("Clients: ", room);
           io.to(obj.id, 'a new user has joined');
           socket.emit('document', {doc: doc, editor: obj.user.username})
-          socket.emit('color', doc.colors.pop())
-          return doc.save();
+          // socket.emit('color', doc.colors.pop())
+          // return doc.save();
         //   if (doc.collaborators.indexOf(obj.user.id) === -1 && obj.user.id !== doc.owner) {
         //     doc.collaborators.push(obj.user.id);
         //   }
