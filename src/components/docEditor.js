@@ -52,25 +52,22 @@ export default class DocEditor extends React.Component {
       })
 
       socket.on('content', (content) => {
-        console.log("content: ", content);
-        var selectionState = SelectionState.createEmpty();
+
         var c = convertFromRaw(content.contentState);
         console.log("C: ", c);
+        var selectionState = SelectionState.createEmpty();
         var s = selectionState.merge(content.selectionState);
         console.log("S: ", s);
-        console.log("anchor", s.anchorOffset);
-        console.log("focusOffset", s.focusOffset);
-        // s.anchorOffset = s.anchorOffset - 1;
 
         if (content.start === content.end) {
           // var content = Modifier.applyInlineStyle(c, s, content.inlineStyle.cursor);
-          var content = Modifier.insertText(c, s, '|')
+          var modified = Modifier.insertText(c, s, '|')
         } else {
-          var content = Modifier.applyInlineStyle(c, s, content.inlineStyle.highlight);
+          var modified = Modifier.applyInlineStyle(c, s, content.inlineStyle.highlight);
         }
 
-        console.log("Content: ", content);
-        var e = EditorState.createWithContent(content);
+        console.log("Content: ", modified);
+        var e = EditorState.createWithContent(modified);
         console.log("E", e);
         // var s = this.state.editorState.getSelection();
 
