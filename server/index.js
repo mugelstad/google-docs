@@ -99,6 +99,9 @@ app.post('/signup', (req, res) => {
 app.post('/login', passport.authenticate('local'), (req, res) => {
   User.findOne({ username: req.body.username, password: req.body.password })
   .exec((err, user) => {
+    if (!user) {
+      res.json({ success: false });
+    }
     res.json({ success: true, user: user });
   });
 });
@@ -187,6 +190,7 @@ io.on('connection', (socket) => {
               color = obj.color;
             } else {
               color = doc.colors.pop();
+              doc.colors.unshift(color);
             }
             console.log("SENDING COLOR: ", color);
             // Checks if user is already in editors
@@ -214,20 +218,20 @@ io.on('connection', (socket) => {
   });
 
 
-  // highlight
-  socket.on('highlight', highlight => {
-    socket.broadcast.emit('highlight', highlight)
-  })
-
-  // cursor
-  socket.on('cursor', cursor => {
-    socket.broadcast.emit('cursor', cursor)
-  })
+  // // highlight
+  // socket.on('highlight', highlight => {
+  //   socket.to().broadcast.emit('highlight', highlight)
+  // })
+  //
+  // // cursor
+  // socket.on('cursor', cursor => {
+  //   socket.to().broadcast.emit('cursor', cursor)
+  // })
 
   // content
   socket.on('content', content => {
     console.log('Content: ', content);
-    socket.broadcast.emit('content', content)
+    socket.broadcast.to(content.room).emit('content', content)
   })
 
   // save
@@ -258,11 +262,7 @@ io.on('connection', (socket) => {
     Document.findById(obj.doc._id)
       .then((doc) => {
         socket.leave(obj.doc.title);
-        doc.colors.push(obj.color);
-        return doc.save()
-      })
-      .then((updated) => {
-        console.log("Updated with color: ", updated);
+        // doc.colors.push(obj.color);
       })
       .catch((err) => {
         console.log('ERROR in exiting  a doc: ', err);

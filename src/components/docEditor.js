@@ -206,7 +206,8 @@ export default class DocEditor extends React.Component {
       selectionState: selectionState,
       inlineStyle: {cursor: `CURSOR${this.state.myColor}`, highlight: `HIGHLIGHT${this.state.myColor}`},
       start: start,
-      end: end
+      end: end,
+      room: this.props.title
       // color: this.state.myColor
     })
 
@@ -254,7 +255,7 @@ export default class DocEditor extends React.Component {
 
   getHistory() {
     this.handleShow();
-    this.state.socket.emit('history', { docId: this.props.doc._id });
+    this.state.socket.emit('history', { docId: this.props.doc._id, title: this.props.title });
   }
 
 
@@ -280,21 +281,22 @@ export default class DocEditor extends React.Component {
 
     var results = [];
 
-    // for (var j = 0; j < text.length; j++) {
-    //   if (input[0] === text[j]) {
-    //     for (var i = 1; i < input.length; i++) {
-    //       if (input[i] === text[j]) {
-    //         if (i === input.length - 1) {
-    //
-    //         }
-    //         continue;
-    //       } else {
-    //         j += input.length
-    //         break;
-    //       }
-    //     }
-    //   }
-    // }
+    for (var j = 0; j < text.length; j++) {
+      if (input[0] === text[j]) {
+        for (var i = 1; i < input.length; i++) {
+          if (input[i] === text[j]) {
+            if (i === input.length - 1) {
+              // save to the results array
+              // start and end => put them in a tuple and push it into an array
+            }
+            continue;
+          } else {
+            j += input.length
+            break;
+          }
+        }
+      }
+    }
 
 
     console.log(found)
