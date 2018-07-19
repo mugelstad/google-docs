@@ -235,6 +235,7 @@ export default class DocEditor extends React.Component {
         </div>
         {this.state.historyShow ? <DocumentHistory
           close={() => this.handleClose()}
+          open={() => this.handleShow()}
           revisions={this.state.history}
           show={this.state.historyShow}
           title={this.props.doc.title}

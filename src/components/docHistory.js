@@ -70,7 +70,10 @@ export default class DocHistory extends React.Component {
                         customStyleMap={styleMap}
                         readOnly
                       />
-                      : <div />
+                      : <div>
+                        Hmm.....There should be something here.
+                        Try reopening this section, I'm sure everything will be good.
+                      </div>
                     }
 
                   </Row>
