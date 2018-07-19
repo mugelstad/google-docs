@@ -80,7 +80,7 @@ export default class DocHistory extends React.Component {
 
                 </Col>
                 <Col xs={3} sm={3} md={3} style={{ overflowY: 'scroll', maxHeight: 500 }}>
-                  {this.state.revisions.map((doc, index) => {
+                  {(this.state.revisions ? this.state.revisions : this.props.revisions.reverse()).map((doc, index) => {
                     return (
                       <Alert
                         bsStyle={(this.state.index === index) ? 'success' : 'warning'}
