@@ -27,9 +27,14 @@ export default class DocEditor extends React.Component {
       search: '',
       selection: SelectionState.createEmpty(),
       yourStyle: null,
+      cursorStyle: {}
     };
     // this.onChange = editorState => this.setState({ editorState });
     this.handleKeyCommand = () => this.handleKeyCommand;
+  }
+
+  updateSetState(editorState){
+    this.setState({editorState: editorState})
   }
 
   componentDidMount() {
@@ -69,35 +74,58 @@ export default class DocEditor extends React.Component {
         this.setState({ history });
       });
 
-      //
-
       socket.on('content', (content) => {
 
-        var c = convertFromRaw(content.contentState);
-        console.log("C: ", c);
-        var selectionState = SelectionState.createEmpty();
-        var s = selectionState.merge(content.selectionState);
-        console.log("S: ", s);
+       var c = convertFromRaw(content.contentState);
+       // console.log("C: ", c);
+       var selectionState = SelectionState.createEmpty();
+       var s = selectionState.merge(content.selectionState);
+       // console.log("S: ", s);
+       var mySelection = this.state.editorState.getSelection()
+       //making cursor
+       if (content.start === content.end) {
 
-        if (content.start === content.end) {
-          // var content = Modifier.applyInlineStyle(c, s, content.inlineStyle.cursor);
-          var modified = Modifier.insertText(c, s, '|')
-        } else {
-          var modified = Modifier.applyInlineStyle(c, s, content.inlineStyle.highlight);
-        }
+         //find x and y of mouse
 
-        console.log("Content: ", modified);
-        var e = EditorState.createWithContent(modified);
-        console.log("E", e);
-        // var s = this.state.editorState.getSelection();
+         var e = EditorState.createWithContent(c);
+         var edit = this.updateSetState(EditorState.forceSelection(e, s));
+         var range = window.getSelection().getRangeAt(0);
+         // let range = document.createRange(selection);
 
-        var newEditor = EditorState.forceSelection(e, s);
-        this.setState({
-          editorState: newEditor,
-          selection: s,
-          yourStyle: content.inlineStyle.highlight
-        })
-      })
+         this.updateSetState(EditorState.forceSelection(e, mySelection))
+         // console.log('selection', selection)
+
+         // range.selectNode(document.getElementById("editor"));
+         let rect = range.getBoundingClientRect();
+         // let rect = range.getClientRects();
+         console.log('rect', rect)
+
+         var modified = c;
+
+         //set div styles for cursor
+         this.setState({cursorStyle: {
+           top: rect.top, bottom: rect.bottom,
+           left: rect.left, right: rect.right,
+           width: '2px',
+           height: rect.height,
+           backgroundColor: this.state.myColor, position: 'absolute'
+         }})
+
+       } else {
+         var modified = Modifier.applyInlineStyle(c, s, content.inlineStyle.highlight);
+         // console.log("Content: ", modified);
+         var e = EditorState.createWithContent(modified);
+         // console.log("E", e);
+         // var s = this.state.editorState.getSelection();
+
+         var newEditor = EditorState.forceSelection(e, mySelection);
+         this.setState({
+           editorState: newEditor,
+           selection: s,
+           yourStyle: content.inlineStyle.highlight
+         })
+       }
+     })
 
     });
 
@@ -232,23 +260,42 @@ export default class DocEditor extends React.Component {
 
   search() {
     var text = document.getElementById('editor').textContent;
-    console.log('Text: ', text);
+    text = text.split('');
 
-    let input = this.state.search.split(' ');
+    var input = this.state.search.split('');
     console.log('INPUT', input)
 
-    text = text.split(' ');
-    console.log('TEXT', text)
-    let found = false;
+    var found = false;
+    var index = 0;
 
-    for (var i=0; i<text.length; i++){
-      for (var j=0; j<input.length; j++){
-        if (text[i] === input[j]){
-          found = true;
-          break;
-        }
-      }
-    }
+    // for (var i=0; i<text.length; i++){
+    //   for (var j=0; j<input.length; j++){
+    //     if (text[i] === input[j]){
+    //       found = true;
+    //       index =
+    //     }
+    //   }
+    // }
+    var index = 0;  // < input.length
+
+    var results = [];
+
+    // for (var j = 0; j < text.length; j++) {
+    //   if (input[0] === text[j]) {
+    //     for (var i = 1; i < input.length; i++) {
+    //       if (input[i] === text[j]) {
+    //         if (i === input.length - 1) {
+    //
+    //         }
+    //         continue;
+    //       } else {
+    //         j += input.length
+    //         break;
+    //       }
+    //     }
+    //   }
+    // }
+
 
     console.log(found)
     //
@@ -303,6 +350,7 @@ export default class DocEditor extends React.Component {
             blockStyleFn={this.myBlockStyleFn}
           />
         </div>
+        <div id="cursor" style={this.state.cursorStyle}></div>
         {this.state.historyShow ? <DocumentHistory
           close={() => this.handleClose()}
           revisions={this.state.history}
