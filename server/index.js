@@ -166,7 +166,7 @@ io.on('connection', (socket) => {
   socket.on('document', (obj) => {
     Document.findById(obj.id)
       .then((doc) => {
-        if (doc){
+        if (doc) {
           socket.join(obj.title, () => {
             var room = io.sockets.adapter.rooms[obj.title];
             var rooms = io.sockets.adapter.rooms
@@ -183,6 +183,7 @@ io.on('connection', (socket) => {
             }
             socket.emit('document', { doc, editor: obj.user.username });
             // socket.emit('color', doc.colors.pop())
+            console.log('save doc')
             return doc.save();
           });
         } else {

@@ -29,19 +29,22 @@ export default class DocEditor extends React.Component {
   }
 
   componentDidMount() {
-    let { socket } = this.state
+    const { socket } = this.state
     const user = JSON.parse(localStorage.getItem('user'));
     socket.on('connect', () => {
       console.log('ws connect');
-      console.log("Emitting document event, ", this.props.id);
-      // socket.emit('document', {id: this.props.id, user: user, title: this.props.title});
+      console.log('Emitting document event, ', this.props.id);
+
+      // This line is needed to load file (don't know why)
+      socket.emit('document', { id: this.props.id, user, title: this.props.title });
       // socket.emit('document', this.props.id);
       // call in document portal front-end side
       socket.on('document', (obj) => {
+        console.log('Document socket on', obj)
         if (obj.doc.contents) {
           this.setState({
             document: obj.doc,
-            editors: obj.editors,
+            editors: obj.doc.editors,
             editorState: EditorState.createWithContent(convertFromRaw({
               entityMap: {},
               blocks: obj.doc.contents.blocks,
@@ -50,7 +53,7 @@ export default class DocEditor extends React.Component {
         } else {
           this.setState({
             document: obj.doc,
-            editors: obj.editors,
+            editors: obj.doc.editors,
           })
         }
       })
@@ -190,8 +193,8 @@ export default class DocEditor extends React.Component {
   }
 
   search() {
-    var text = document.getElementById("editor").textContent;
-    console.log("Text: ", text);
+    var text = document.getElementById('editor').textContent;
+    console.log('Text: ', text);
 
 
 
@@ -201,16 +204,23 @@ export default class DocEditor extends React.Component {
     // console.log('portal: ', this.state.docPortal);
     return (
       <div>
-        <button type="button" onClick={() => this.props.toggle(this.props.id)}>Back to Documents Portal</button>
+        <button
+          type="button"
+          onClick={() =>
+          this.props.toggle(this.props.id)}>Back to Documents Portal</button>
         <br />
         <h2>{this.props.doc.title}</h2>
         <br />
         <p>Shareable Document ID: {this.props.doc._id}</p>
-        <p>Current editors: <ul>{this.state.editors.map((editor) => {
-          <li>{editor}</li>
-        })}</ul></p>
+        <p style={{ overflowY: 'scroll', maxHeight: 30 }}>Current editors: <ul>{this.state.editors.map(editor =>
+          (<li>{editor.username}</li>))}</ul></p>
         <div>
-          <input type="text" placeholder="Find in document" onChange={(e) => this.handleSearch(e)} value={this.state.search} ></input>
+          <input
+            type="text"
+            placeholder="Find in document"
+            onChange={e => this.handleSearch(e)}
+            value={this.state.search}
+          />
           <button type="button" onClick={() => this.search()} >Search</button>
         </div>
         <button type="button" onClick={() => this.save()} >Save Changes</button>
