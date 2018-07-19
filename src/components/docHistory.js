@@ -36,7 +36,11 @@ export default class DocHistory extends React.Component {
           onHide={() => this.props.hide()}
         >
           <Modal.Header closeButton>
-            <Modal.Title id="contained-modal-title-lg">History</Modal.Title>
+            <Modal.Title
+              id="contained-modal-title-lg"
+            >
+              History of {this.state.currVersion.title} as of {
+                new Date().toLocaleString()}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Grid>
@@ -87,7 +91,7 @@ export default class DocHistory extends React.Component {
                         onClick={() => this.selectVersion(index)}
                         style={{ cursor: 'pointer' }}
                       >
-                        <strong>{new Date(doc.time).toTimeString()}</strong>: by {doc.user.username}
+                        <strong>{`${new Date(doc.time).toDateString()} ${new Date(doc.time).toTimeString()}`}</strong>: by {doc.user.username}
                       </Alert>
                     );
                   })
