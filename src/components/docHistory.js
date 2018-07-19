@@ -9,7 +9,7 @@ export default class DocHistory extends React.Component {
     super(props);
     this.state = {
       revisions: this.props.revisions.reverse(),
-      currVersion: this.props.revisions[0],
+      currVersion: this.props.revisions[this.props.revisions.length-1],
       index: 0,
     };
   }
@@ -23,7 +23,7 @@ export default class DocHistory extends React.Component {
   }
 
   selectVersion(index) {
-    this.setState({ currVersion: this.props.revisions[index], index });
+    this.setState({ currVersion: this.state.revisions[index], index });
   }
 
   render() {
@@ -80,7 +80,7 @@ export default class DocHistory extends React.Component {
 
                 </Col>
                 <Col xs={3} sm={3} md={3} style={{ overflowY: 'scroll', maxHeight: 500 }}>
-                  {this.props.revisions.map((doc, index) => {
+                  {this.state.revisions.map((doc, index) => {
                     return (
                       <Alert
                         bsStyle={(this.state.index === index) ? 'success' : 'warning'}
