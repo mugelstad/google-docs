@@ -35,7 +35,7 @@ export default class DocHistory extends React.Component {
           bsSize="large"
           aria-labelledby="contained-modal-title"
           show={this.props.show}
-          onHide={this.props.hide}
+          onHide={() => this.props.hide()}
         >
           <Modal.Header closeButton>
             <Modal.Title id="contained-modal-title-lg">History</Modal.Title>
@@ -53,7 +53,7 @@ export default class DocHistory extends React.Component {
                       })).getPlainText()
                     })</div>
                   </Row>
-                  <Row className="show-grid">
+                  <Row className="show-grid" style={{ textAlign: 'center'}}>
                     <Col md={6} xs={9} sm={5}>
                       <h4>Added</h4>
                     </Col>
@@ -64,7 +64,7 @@ export default class DocHistory extends React.Component {
                   </Row>
 
                 </Col>
-                <Col xs={6} md={4} sm={3}>
+                <Col xs={6} md={4} sm={3} style={{ overFlowY: 'scroll', maxHeight: 400 }}>
                   {this.props.revisions.map((doc, index) => {
                     return (
                       <Alert
@@ -82,7 +82,7 @@ export default class DocHistory extends React.Component {
             </Grid>
           </Modal.Body>
           <Modal.Footer>
-          <Button onClick={this.props.hide}>Close</Button>
+          <Button onClick={() => this.props.hide()}>Close</Button>
         </Modal.Footer>
       </Modal>
     );
