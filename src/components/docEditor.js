@@ -24,7 +24,9 @@ export default class DocEditor extends React.Component {
       document: {},
       editors: [],
       history: [],
-      search: ''
+      search: '',
+      selection: SelectionState.createEmpty(),
+      yourStyle: null,
     };
     // this.onChange = editorState => this.setState({ editorState });
     this.handleKeyCommand = () => this.handleKeyCommand;
@@ -35,26 +37,29 @@ export default class DocEditor extends React.Component {
     const user = JSON.parse(localStorage.getItem('user'));
     socket.on('connect', () => {
       console.log('ws connect');
-      console.log('Emitting document event, ', this.props.id);
-
-      // This line is needed to load file (don't know why)
-      socket.emit('document', { id: this.props.id, user, title: this.props.title, document: this.props.selectedDoc });
+      console.log("Emitting document event, ", this.props.id);
+      // socket.emit('document', {id: this.props.id, user: user, title: this.props.title});
       // socket.emit('document', this.props.id);
+      this.state.socket.emit('document', { document: this.props.doc, user: user, title: this.props.title, id: this.props.id, color: this.state.myColor });
       // call in document portal front-end side
       socket.on('document', (obj) => {
+        console.log('Color us: ', obj.color);
         if (obj.doc.contents) {
           this.setState({
             document: obj.doc,
+            user: user,
             editors: obj.doc.editors,
             editorState: EditorState.createWithContent(convertFromRaw({
               entityMap: {},
               blocks: obj.doc.contents.blocks,
             })),
+            myColor: obj.color
           })
         } else {
           this.setState({
             document: obj.doc,
-            editors: obj.doc.editors,
+            editors: obj.editors,
+            myColor: obj.color
           })
         }
       });
@@ -65,10 +70,6 @@ export default class DocEditor extends React.Component {
       });
 
       //
-      socket.on('color', (color) => {
-        console.log('Color us: ', color);
-        this.setState({ myColor: color })
-      });
 
       socket.on('content', (content) => {
 
@@ -92,7 +93,9 @@ export default class DocEditor extends React.Component {
 
         var newEditor = EditorState.forceSelection(e, s);
         this.setState({
-          editorState: newEditor
+          editorState: newEditor,
+          selection: s,
+          yourStyle: content.inlineStyle.highlight
         })
       })
 
@@ -141,26 +144,39 @@ export default class DocEditor extends React.Component {
   onChange(editorState) {
     console.log('in on change');
 
+
     let selectionState = editorState.getSelection();
-    console.log("Selection state: ", selectionState);
+    //console.log("Selection state: ", selectionState);
     let currentContent = editorState.getCurrentContent();
     let anchorKey = selectionState.getAnchorKey();
     let currentContentBlock = currentContent.getBlockForKey(anchorKey);
     let start = selectionState.getStartOffset();
-    console.log("Start: ", start);
+    //console.log("Start: ", start);
     let end = selectionState.getEndOffset();
-    console.log("End: ", end);
+    //console.log("End: ", end);
     let selectedText = currentContentBlock.getText().slice(start, end);
-    console.log('selected: ', selectedText);
+    //console.log('selected: ', selectedText);
 
     // Real-time Content changes
     // Real-time Cursor loc changes
 
+    // remove inline style
+    console.log("State: ", this.state.selection);
+    console.log("State: ", currentContent);
+    console.log(": ", this.state.yourStyle);
+
+    if (this.state.yourStyle) {
+      var modified = Modifier.removeInlineStyle(currentContent, this.state.selection, this.state.yourStyle);
+    } else {
+      var modified = currentContent;
+    }
+
+    console.log("M: ", modified);
     // WILL CHANGE THE INLINESTYLE BE CONCAT BASED ON MYCOLOR
     this.state.socket.emit('content', {
-      contentState: convertToRaw(currentContent),
+      contentState: convertToRaw(modified),
       selectionState: selectionState,
-      inlineStyle: {cursor: "CURSORRED", highlight: "HIGHLIGHTRED"},
+      inlineStyle: {cursor: `CURSOR${this.state.myColor}`, highlight: `HIGHLIGHT${this.state.myColor}`},
       start: start,
       end: end
       // color: this.state.myColor
@@ -213,9 +229,38 @@ export default class DocEditor extends React.Component {
     this.state.socket.emit('history', { docId: this.props.doc._id });
   }
 
+
   search() {
     var text = document.getElementById('editor').textContent;
     console.log('Text: ', text);
+
+    let input = this.state.search.split(' ');
+    console.log('INPUT', input)
+
+    text = text.split(' ');
+    console.log('TEXT', text)
+    let found = false;
+
+    for (var i=0; i<text.length; i++){
+      for (var j=0; j<input.length; j++){
+        if (text[i] === input[j]){
+          found = true;
+          break;
+        }
+      }
+    }
+
+    console.log(found)
+    //
+    // let selection = window.getSelection();
+    //
+    // var range = document.createRange();
+    // range.selectNode(text[0])
+    // selection.addRange(range)
+    // selection.addRange()
+    //
+    // console.log('selection', selectionRange)
+
 
   }
 
@@ -223,10 +268,7 @@ export default class DocEditor extends React.Component {
     // console.log('portal: ', this.state.docPortal);
     return (
       <div>
-        <button
-          type="button"
-          onClick={() =>
-          this.props.toggle(this.props.id)}>Back to Documents Portal</button>
+        <button type="button" onClick={() => this.props.toggle(this.state.myColor)}>Back to Documents Portal</button>
         <br />
         <h2>{this.props.doc.title}</h2>
         <br />

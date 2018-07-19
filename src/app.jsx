@@ -39,8 +39,7 @@ export default class App extends React.Component {
     return (
       <div>
         {this.state.home ? <Home toDoc={() => this.toDoc()} /> :
-        <DocPortal />
-            }
+        <DocPortal toHome={() => this.toDoc()}/> }
       </div>
     );
   }

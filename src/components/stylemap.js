@@ -93,12 +93,42 @@ const styleMap = {
     listStyleType: 'decimal',
     listStylePosition: 'inside',
   },
-  CURSORRED: {
+  CURSORred: {
     color: 'red'
   },
-  HIGHLIGHTRED: {
+  HIGHLIGHTred: {
     backgroundColor: 'red'
-  }
+  },
+  CURSORorange: {
+    color: 'orange'
+  },
+  HIGHLIGHTorange: {
+    backgroundColor: 'orange'
+  },
+  CURSORyellow: {
+    color: 'yellow'
+  },
+  HIGHLIGHTyellow: {
+    backgroundColor: 'yellow'
+  },
+  CURSORgreen: {
+    color: 'green'
+  },
+  HIGHLIGHTgreen: {
+    backgroundColor: 'green'
+  },
+  CURSORblue: {
+    color: 'blue'
+  },
+  HIGHLIGHTblue: {
+    backgroundColor: 'blue'
+  },
+  CURSORpurple: {
+    color: 'purple'
+  },
+  HIGHLIGHTpurple: {
+    backgroundColor: 'purple'
+  },
 };
 
 export default styleMap;

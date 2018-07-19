@@ -30,7 +30,7 @@ export default class DocPortal extends React.Component {
       const user = JSON.parse(localStorage.getItem('user'));
 
       // Document Filter for documents user is owner or collaborator
-      const userDocs = docs.filter(doc =>
+      var userDocs = docs.filter(doc =>
         (doc.collaborators.indexOf(user.id) !== -1 || user.id === doc.owner));
       this.setState({
         documents: userDocs,
@@ -71,6 +71,7 @@ export default class DocPortal extends React.Component {
             selectedDocTitle: responseJson.document.title,
             selectedDocId: responseJson.document._id
           })
+          // this.state.socket.emit('document', { document: responseJson.document, user: this.state.user, title: responseJson.document.title, id: responseJson.document._id });
           this.toggle();  // move to docEditor
         }
       })
@@ -89,7 +90,7 @@ export default class DocPortal extends React.Component {
     .then((responseJson) => {
       if (responseJson.success) {
         this.setState({ selectedDoc: responseJson.document });
-        this.state.socket.emit('document', { document: responseJson.document, user: this.state.user });
+        // this.state.socket.emit('document', { document: responseJson.document, user: this.state.user, title: responseJson.document.title, id: responseJson.document._id });
         this.toggle();
       } else if (responseJson.passNeeded) {
         alert('You do not have access to this document');
@@ -118,34 +119,67 @@ export default class DocPortal extends React.Component {
         prompt({ title: 'Password Needed', label: 'Enter Password for this document' })
         .then((password) => {
           if (password === doc.password) {
-            const docCopy = JSON.parse(JSON.stringify(doc));
+            var docCopy = JSON.parse(JSON.stringify(doc));
             docCopy.collaborators.push(this.state.user.id);
             console.log('DocCpy', docCopy);
-            this.setState({ selectedDoc: docCopy });
+            var docs = this.state.documents.slice();
+            docs.push(docCopy);
+            this.setState({ selectedDoc: docCopy, documents: docs});
+            // this.state.socket.emit('document', { document: docCopy, user: this.state.user, title: docCopy.title, id: docCopy._id });
             this.toggle();
           } else {
             alert('Password Was Incorrect');
           }
-        });
+        })
       } else if (responseJson.success) {
-        const docCopy = JSON.parse(JSON.stringify(responseJson.document));
+        var docCopy = JSON.parse(JSON.stringify(responseJson.document));
         console.log('DocCpy', docCopy);
+        // var docs = this.state.documents.slice();
+        // docs.push(docCopy);
+        // this.state.socket.emit('document', { document: docCopy, user: this.state.user, title: docCopy.title, id: docCopy._id });
         this.setState({ selectedDoc: docCopy });
+
         this.toggle();
       } else {
         alert('Document was not added');
       }
     })
+    // this.state.socket.emit('document', { user: this.state.user, document: docCopy });
+
+
   }
 
   toggle() {
     this.setState({ docPortal: !this.state.docPortal });
   }
 
-  toPortal(id) {
+  toPortal(color) {
+    this.setState({ docPortal: !this.state.docPortal });
     const user = JSON.parse(localStorage.getItem('user'));
-    this.state.socket.emit('exit', { user, docID: id });
+    this.state.socket.emit('exit', { user: user, doc: this.state.selectedDoc, color: color });
     this.setState({ docPortal: true })
+  }
+
+  logout() {
+    fetch('http://localhost:8080/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+      })
+    })
+    .then(response => response.json())
+    .then((responseJson) => {
+      if (responseJson.success) {
+        console.log('Successfully logged out');
+        localStorage.clear();
+        this.props.toHome();  // move to Home
+      }
+    })
+    .catch((err) => {
+      console.log('Error: ', err);
+    });
   }
 
   render() {
@@ -162,11 +196,11 @@ export default class DocPortal extends React.Component {
               title={this.state.title}
             />
             <DocumentList documents={this.state.documents} view={id => this.viewDoc(id)} />
-
+            <button type="button" onClick={() => this.logout()} >Logout</button>
           </div>
         :
           <DocEditor
-            toggle={() => this.toggle()}
+            toggle={() => this.toPortal()}
             doc={this.state.selectedDoc}
             id={this.state.selectedDoc._id}
             title={this.state.selectedDoc.title}
