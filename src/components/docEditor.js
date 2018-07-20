@@ -329,21 +329,15 @@ export default class DocEditor extends React.Component {
           colors={['red', 'yellow', 'orange', 'green', 'blue', 'purple', 'brown', 'cyan']}
         />
         <div>
-          <input
-            type="text"
-            placeholder="Find in document"
-            onChange={e => this.handleSearch(e)}
-            value={this.state.search}
-          />
-          <button type="button" onClick={() => this.search()} >Search</button>
-        </div>
-        <button type="button" onClick={() => this.save()} >Save Changes</button>
-        <button type="button" onClick={() => this.getHistory()} >History</button>
-        <div>
           <ToolBar
             edit={value => this.makeEdit(value)}
             toggleBlockType={value => this.toggleBlockType(value)}
             blockEdit={value => this.toggleBlock(value)}
+            handleSearch={e => this.handleSearch(e)}
+            searchValue={this.state.search}
+            search={() => this.search()}
+            save={() => this.save()}
+            getHistory={() => this.getHistory()}
           />
         </div>
         <div id="editor" style={{ backgroundColor: '#cfcfcf', textAlign: this.state.align, marginLeft: -50, marginRight: -50, paddingTop: 50 }}>

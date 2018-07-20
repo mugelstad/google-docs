@@ -1,5 +1,5 @@
 import React from 'react';
-import { ButtonGroup, Button, ButtonToolbar, Glyphicon } from 'react-bootstrap';
+import { ButtonGroup, Button, ButtonToolbar, Glyphicon, Navbar, FormGroup, FormControl } from 'react-bootstrap';
 import FontSizeSelect from './fontSizeSelect';
 import FontColourSelect from './fontColourSelect';
 import { EditorState, RichUtils } from 'draft-js';
@@ -23,8 +23,20 @@ export default class ToolBar extends React.Component {
   render() {
     return (
       <div>
-        <FontSizeSelect edit={value => this.onFontSizeChange(value)} />
-        <FontColourSelect edit={value => this.onFontColourChange(value)} />
+        <Navbar>
+          <Navbar.Collapse>
+            <Navbar.Form pullLeft>
+              <FormGroup>
+                <FormControl type="text" placeholder="Find in Document" onChange={(e) => this.props.search(e)} value={this.props.searchValue}/>
+              </FormGroup>{' '}
+              <Button type="submit">Search</Button>
+            </Navbar.Form>
+            <Navbar.Form pullRight>
+              <Button onClick={() => this.props.save()} >Save Changes</Button>
+              <Button onClick={() => this.props.getHistory()} >History</Button>
+            </Navbar.Form>
+          </Navbar.Collapse>
+        </Navbar>
         <ButtonToolbar>
           <ButtonGroup>
             <Button onClick={() => this.props.edit('BOLD')}><bold>B</bold></Button>
@@ -51,6 +63,8 @@ export default class ToolBar extends React.Component {
             <Button onClick={() => this.props.toggleBlockType('ordered-list-item')}>
               <Glyphicon glyph="sort-by-order" />
             </Button>
+            <FontSizeSelect edit={value => this.onFontSizeChange(value)} />
+            <FontColourSelect edit={value => this.onFontColourChange(value)} />
           </ButtonGroup>
         </ButtonToolbar>
       </div>
