@@ -26,24 +26,22 @@ export default class EditorHeader extends React.Component{
         <Row>
           <Col xs={9} sm={6} md={8}><h2>{this.props.doc.title}</h2></Col>
           <Col style={{ marginTop: 30, float: 'right' }}>
-            {/* {this.props.editors.map((editor) => {
-              const color =
-               this.props.colors[Math.floor(Math.random() * (this.props.colors).length)]
+            {this.props.editors.map((editor) => {
                 return (
                   <span style={{ marginRight: 5,
-                    backgroundColor: color,
+                    backgroundColor: editor.color,
                     padding: 15,
                     borderRadius: 45,
                     border: '1px solid white',
                     color: 'white',
                     width: 40 }}
-                    title={editor.username}
+                    title={editor.editor}
                   >
-                    {editor.username.slice(0, 1).toUpperCase()}
+                    {editor.editor.slice(0, 1).toUpperCase()}
                   </span>
                 );
             }
-        )} */}
+        )}
           </Col>
         </Row>
         <Modal

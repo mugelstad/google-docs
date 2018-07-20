@@ -23,7 +23,7 @@ export default class App extends React.Component {
   componentDidMount() {
     // const socket = io('http://127.0.0.1:8080');
     this.state.socket.on('connect', () => { console.log('ws connect'); });
-    this.state.socket.on('disconnect', () => { console.log('ws disconnect'); });
+    this.state.socket.on('disconnect', () => { console.log('ws disconnect', this.state.socket.id); });
 
   }
 

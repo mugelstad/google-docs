@@ -47,13 +47,15 @@ export default class DocEditor extends React.Component {
     // socket.emit('document', this.props.id);
     // socket.emit('document', { document: this.props.doc, user: user, title: this.props.title, id: this.props.id, color: this.state.myColor });
     // call in document portal front-end side
+    // socket.emit('addeditor', {title: this.props.title, editor: user.username})
+
     socket.on('document', (obj) => {
       console.log('Color us: ', obj.color);
       if (obj.doc.contents) {
         this.setState({
           document: obj.doc,
           user: user,
-          // editors: obj.doc.editors,
+          // editors: obj.editors,
           editorState: EditorState.createWithContent(convertFromRaw({
             entityMap: {},
             blocks: obj.doc.contents.blocks,
@@ -62,33 +64,46 @@ export default class DocEditor extends React.Component {
         })
       } else {
         this.setState({
+          user: user,
           document: obj.doc,
           // editors: obj.editors,
           myColor: obj.color
         })
       }
+      console.log("TSDASD", this.state.myColor);
+      socket.emit('addeditor', {document: this.state.document, editor: this.state.user.username, color: obj.color})
     });
 
-    socket.on('leave', obj => {
+
+    socket.on('exit', obj => {
       // var array = this.state.editors.splice();
       // var index = array.indexOf(obj.editor);
       // array.splice(index, 1);
       // this.setState({
       //   editors: array
       // })
-      this.props.toggle();
+      this.props.exit();
       if (obj.message) {
         alert(obj.message);
       }
     })
 
-    socket.on('editors', (editor) => {
-      var arr = this.state.editors.slice();
-      arr.push(editor);
-      console.log("MY ED: ", arr);
+    socket.on('editors', (editors) => {
+
+      console.log("EDDDD", editors);
       this.setState({
-        editors: arr
+        editors: editors
       })
+      // console.log('ADASD');
+      // if (this.state.editors.indexOf(editor) === -1) {
+      //   console.log("state", this.state.editors);
+      //   var arr = this.state.editors.slice();
+      //   arr.push(editor);
+      //   console.log("MY ED: ", arr);
+      //   this.setState({
+      //     editors: arr
+      //   })
+      // }
     })
 
     socket.on('history', (history) => {
@@ -128,7 +143,7 @@ export default class DocEditor extends React.Component {
        this.setState({cursorStyle: {
          top: rect.top, bottom: rect.bottom,
          left: rect.left, right: rect.right,
-         width: '2px',
+         width: '4px',
          height: rect.height,
          backgroundColor: content.color, position: 'absolute'
        }})
@@ -247,9 +262,11 @@ export default class DocEditor extends React.Component {
   // Different Function to implement autosave only when different
   autosave() {
     const currentContent = convertToRaw(this.state.editorState.getCurrentContent());
-    if (!this.sameContent(currentContent.blocks,
+    if (this.state.history.length > 0 && !this.sameContent(currentContent.blocks,
       this.state.document.history[this.state.document.history.length - 1].blocks).different) {
       this.save();
+    } else {
+      console.log('Same Content')
     }
   }
 

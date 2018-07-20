@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { InputGroup, FormGroup, ButtonGroup, Form, Jumbotron, Glyphicon, FormControl, Button, Row, Col } from 'react-bootstrap';
 
 export default class Login extends React.Component {
 
@@ -20,11 +20,11 @@ export default class Login extends React.Component {
     }
   }
 
-
   handleUsername(e) {
     this.setState({
       typedUsername: e.target.value,
     })
+    styles.username = {borderWidth: '3px'}
   }
 
   handlePassword(e) {
@@ -67,17 +67,50 @@ export default class Login extends React.Component {
 
   }
 
+
+
   render() {
     return (
-      <div>
-        <h1>Login</h1>
-        <form onSubmit={(e) => this.handleSubmit(e)}>
-          <input type="text" onChange={(e) => this.handleUsername(e)} value={this.state.typedUsername}></input>
-          <input type="text" onChange={(e) => this.handlePassword(e)} value={this.state.typedPassword}></input>
-          <input type="submit" value="Login"/>
-        </form>
-        <button onClick={() => this.props.toggle()}>Go to Signup</button>
-      </div>
+      <Jumbotron style={styles.jumbotron}>
+        <h1 style={{textAlign: 'center'}}>Welcome to Horizons Docs</h1>
+        <h3 style={{textAlign: 'center'}}>Log In</h3>
+        <Form horizontal onSubmit={(e) => this.handleSubmit(e)}>
+          <FormGroup>
+            <Col>
+              Username
+            </Col>
+            <Col>
+              <FormControl type="username" placeholder="Username" onChange={(e) => this.handleUsername(e)}/>
+            </Col>
+          </FormGroup>
+
+          <FormGroup>
+            <Col>
+              Password
+            </Col>
+            <Col>
+              <FormControl type="password" placeholder="Password" onChange={(e) => this.handlePassword(e)}/>
+            </Col>
+          </FormGroup>
+
+          <FormGroup>
+            <Col>
+              <ButtonGroup>
+                <Button  bsStyle="primary" type="submit" onClick={() => this.props.toggle()}>Go To Register</Button>
+                <Button  bsStyle="success" type="submit">Log In</Button>
+              </ButtonGroup>
+            </Col>
+          </FormGroup>
+
+        </Form>
+      </Jumbotron>
     )
+  }
+}
+
+const styles = {
+  jumbotron: {
+    borderRadius: 3,
+    padding: '20px'
   }
 }

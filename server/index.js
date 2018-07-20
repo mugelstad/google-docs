@@ -168,7 +168,7 @@ io.on('connection', (socket) => {
 
   // Q: limit decreases every time : Load capacity
   // load document
-  socket.on('document', (obj) => {
+  socket.on('document', (obj, fn) => {
     Document.findById(obj.id)
       .then((doc) => {
         if (doc) {
@@ -178,11 +178,13 @@ io.on('connection', (socket) => {
             console.log("ROOM: ", room);
             console.log('Rooms: ', rooms);
             console.log('L:', room.length);
-            if (room.length > 6) {
+            if (room.length > 2) {
               socket.leave(obj.title);
-              return socket.emit('leave', {message: 'Document cannot hold more than 6 editors', editor: obj.user.username})
+              return socket.emit('exit', {message: 'Document cannot hold more than 6 editors', editor: obj.user.username})
             }
-            console.log('Clients: ', room);
+            console.log('Clients: ', Object.keys(room.sockets));
+            console.log('Me: ', socket.id);
+
             io.to(obj.id, 'a new user has joined');
             var color = '';
             if (obj.color) {
@@ -192,30 +194,26 @@ io.on('connection', (socket) => {
               doc.colors.unshift(color);
             }
             console.log("SENDING COLOR: ", color);
-            // Checks if user is already in editors
-            //console.log("EDITors: ", doc.editors);
-            // if (doc.editors.filter(item => {
-            //   //console.log("ITEM: ", item);
-            //   return item.id === obj.user.id
-            // }).length === 0) {
-            //   doc.editors.push(obj.user);
-            // }
-
-            // check if collaborators are Updated
-            // if (doc.collaborators[doc.collaborators.length - 1] !== obj.document.collaborators[doc.collaborators.length - 1]) {
-            //   doc.collaborators = obj.document.collaborators; // overriding ...-> FIX THIS
-            // }
-            // doc.collaborators = obj.document.collaborators; // overriding ...-> FIX THIS
             socket.emit('document', {doc: doc, color: color});
+            // io.in(obj.title).emit('editors', {editors: Object.keys(room.sockets), me: {id: socket.id, name: obj.user.username, color: color}});
+            // io.in(obj.title).emit('editors', {editors: Object.keys(room.sockets)});
+
+            // socket.emit('addeditor', {document: doc, editor: obj.user.username, color: color})
+
+            // io.in(obj.document.title).emit('editors', obj.editors)
+
             console.log('save doc')
-            return doc.save();
+
+            // add me as an editor
+            // fn(color);
+            return doc.save()
           });
         } else {
           console.log('Document is Null');
         }
       })
-      .then((updated) => {
-        console.log('UDPATED to: ', updated);
+      .then((saved) => {
+        console.log("SAVEEEED");
       })
       .catch(err =>  console.log('Could not get history', err));
 
@@ -240,8 +238,35 @@ io.on('connection', (socket) => {
 
   // add Editors
   socket.on('addeditor', obj => {
-    console.log("ADD Editors");
-    socket.broadcast.to(obj.document.title).emit('editors', obj.editor)
+    console.log("ADD Editors", obj.editor);
+    console.log(obj.document.title);
+    // io.in(obj.document.title).emit('editors', obj.editors)
+
+    // var room = io.sockets.adapter.rooms[obj.title];
+    // console.log();
+    console.log('COLOR: ', obj.color);
+    Document.findById(obj.document._id)
+      .then((doc) => {
+        if (doc.editors.length === 0){
+          doc.editors.push({editor: obj.editor, color: obj.color});
+          console.log("doc editors", doc.editors);
+        } else {
+          for (var i = 0; i < doc.editors.length; i++) {
+            if (doc.editors[i].editor !== obj.editor) {
+              doc.editors.push({editor: obj.editor, color: obj.color});
+              console.log("doc editors", doc.editors);
+            }
+          }
+        }
+
+        // if (doc.editors.indexOf(obj.editor) === -1) {
+        //
+        // }
+        return doc.save();
+      })
+      .then((saved) => {
+        io.in(obj.document.title).emit('editors', saved.editors)
+      })
   })
 
 
@@ -274,14 +299,33 @@ io.on('connection', (socket) => {
 
   socket.on('exit', obj => {
     // Document.find
+    // ('EXIT')
+    console.log("EXIT");
     var editor = obj.editor;
     console.log("Editor: ", editor);
-    socket.broadcast.to(obj.doc.title).emit('leave', {message: '', editor: editor});
+    // socket.broadcast.to(obj.doc.title).emit('leave', {message: '', editor: editor});
+    socket.emit('leave', {message: '', editor: editor});
     var client = io.sockets.adapter.rooms[obj.doc.title];
     console.log('Clients: ', client);
-    console.log(obj.doc.title);
-    socket.leave(obj.doc.title);
-    console.log('Clients after: ', client);
+
+    // io.in(obj.title).emit('editors', {editors: Object.keys(room.sockets)});
+
+    // Take them out of the editors
+    Document.findById(obj.doc._id)
+      .then((doc) => {
+        var filtered = doc.editors.filter((item) => item.editor !== obj.editor);
+        doc.editors = filtered;
+        // if (doc.editors.indexOf(obj.editor) > -1) {
+        //   doc.editors.splice(doc.editors.indexOf(obj.editor), 1);
+        // }
+        return doc.save();
+      })
+      .then((saved) => {
+        console.log(obj.doc.title);
+        io.in(obj.doc.title).emit('editors', saved.editors)
+        socket.leave(obj.doc.title);
+        console.log('Clients after: ', client);
+      })
 
   })
 

@@ -94,22 +94,22 @@ const styleMap = {
     listStylePosition: 'inside',
   },
   HIGHLIGHTred: {
-    backgroundColor: 'red'
+    backgroundColor: 'rgb(244, 97, 44)'
   },
   HIGHLIGHTorange: {
-    backgroundColor: 'orange'
+    backgroundColor: 'rgb(242, 153, 46)'
   },
   HIGHLIGHTyellow: {
-    backgroundColor: 'yellow'
+    backgroundColor: 'rgb(244, 217, 43)'
   },
   HIGHLIGHTgreen: {
-    backgroundColor: 'green'
+    backgroundColor: 'rgb(188, 244, 66)'
   },
   HIGHLIGHTblue: {
-    backgroundColor: 'blue'
+    backgroundColor: 'rgb(120, 231, 237)'
   },
   HIGHLIGHTpurple: {
-    backgroundColor: 'purple'
+    backgroundColor: 'rgb(209, 125, 242)'
   },
 };
 

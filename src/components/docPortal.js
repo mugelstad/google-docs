@@ -68,12 +68,15 @@ export default class DocPortal extends React.Component {
           docs.push(responseJson.document);
           this.setState({
             documents: docs,
+            selectedDoc: responseJson.document,
             selectedDocTitle: responseJson.document.title,
             selectedDocId: responseJson.document._id
           })
-          this.props.socket.emit('addeditor', {document: responseJson.document, editor: this.state.user.username})
 
-          this.props.socket.emit('document', { document: responseJson.document, user: this.state.user, title: responseJson.document.title, id: responseJson.document._id });
+          this.props.socket.emit('document', { document: responseJson.document, user: this.state.user, title: responseJson.document.title, id: responseJson.document._id }, () => {
+            this.props.socket.emit('addeditor', {document: responseJson.document, editor: this.state.user.username})
+          });
+
           this.toggle();  // move to docEditor
         }
       })
@@ -92,8 +95,11 @@ export default class DocPortal extends React.Component {
     .then((responseJson) => {
       if (responseJson.success) {
         this.setState({ selectedDoc: responseJson.document });
-        this.props.socket.emit('addeditor', {document: responseJson.document, editor: this.state.user.username})
-        this.props.socket.emit('document', { document: responseJson.document, user: this.state.user, title: responseJson.document.title, id: responseJson.document._id });
+        console.log("VIEW");
+        this.props.socket.emit('document', { document: responseJson.document, user: this.state.user, title: responseJson.document.title, id: responseJson.document._id }, () =>{
+          this.props.socket.emit('addeditor', {document: responseJson.document, editor: this.state.user.username})
+        });
+
         this.toggle();
       } else if (responseJson.passNeeded) {
         alert('You do not have access to this document');
@@ -122,9 +128,12 @@ export default class DocPortal extends React.Component {
             var docs = this.state.documents.slice();
             docs.push(docCopy);
             this.setState({ selectedDoc: docCopy, documents: docs});
-            this.props.socket.emit('addeditor', {document: docCopy, editor: this.state.user.username})
             this.props.socket.emit('addshared', {document: docCopy, id: docCopy._id})
-            this.props.socket.emit('document', { document: docCopy, user: this.state.user, title: docCopy.title, id: docCopy._id });
+            this.props.socket.emit('document', { document: docCopy, user: this.state.user, title: docCopy.title, id: docCopy._id }, (color) => {
+              console.log("C: ", color);
+              this.props.socket.emit('addeditor', {document: docCopy, editor: this.state.user.username, color: color})
+            });
+
             this.toggle();
           } else {
             alert('Password Was Incorrect');
@@ -154,6 +163,10 @@ export default class DocPortal extends React.Component {
   toPortal() {
     this.setState({ docPortal: true });
     this.props.socket.emit('exit', {doc: this.state.selectedDoc, editor: this.state.user.username});
+  }
+
+  exit() {
+    this.setState({ docPortal: true });
   }
 
   logout() {
@@ -200,6 +213,7 @@ export default class DocPortal extends React.Component {
             id={this.state.selectedDoc._id}
             title={this.state.selectedDoc.title}
             socket={this.props.socket}
+            exit={() => this.exit()}
           /> }
       </div>
     );
