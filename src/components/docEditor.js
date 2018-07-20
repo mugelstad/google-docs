@@ -110,7 +110,7 @@ export default class DocEditor extends React.Component {
     socket.on('disconnect', () => { console.log('ws disconnect'); });
 
     // autoSave every 5 minutes
-    this.autoSave = setInterval(() => this.save(), 300000);
+    this.autoSave = setInterval(() => this.autosave(), 3000);
   }
 
   componentWillUnmount() {
@@ -208,8 +208,18 @@ export default class DocEditor extends React.Component {
     // })
   }
 
+  // Different Function to implement autosave only when different
+  autosave() {
+    const currentContent = convertToRaw(this.state.editorState.getCurrentContent());
+    if (!this.sameContent(currentContent.blocks,
+      this.state.document.history[this.state.document.history.length - 1].blocks)) {
+      this.save();
+    } else {
+      console.log('Same COnetnet');
+    }
+  }
+
   save() {
-    console.log(' Trying to save', this.state);
     if (this.state) {
       const currentContent = this.state.editorState.getCurrentContent();
       console.log('Save the content ', currentContent);
@@ -240,6 +250,24 @@ export default class DocEditor extends React.Component {
     this.state.socket.emit('history', { docId: this.props.doc._id });
   }
 
+  sameContent(blocksA, blocksB) {
+    const checks = (blocksA.map((block, index) => (block.key === blocksB[index].key &&
+        block.text === blocksB[index].text &&
+        block.type === blocksB[index].type &&
+        block.depth === blocksB[index].depth &&
+        block.inlineStyleRanges.length ===
+        blocksB[index].inlineStyleRanges.length &&
+        ((block.inlineStyleRanges.length > 0) &&
+        (blocksB[index].inlineStyleRanges.length > 0) ?
+        block.inlineStyleRanges.map((style, j) => (
+          style.offset === blocksB[index].inlineStyleRanges[j].offset &&
+          style.length === blocksB[index].inlineStyleRanges[j].length &&
+          style.style === blocksB[index].inlineStyleRanges[j].style))
+          .reduce((a, b) => a && b) : true)
+      )));
+
+    return checks.reduce((a, b) => a && b);
+  }
 
   search() {
     var text = document.getElementById('editor').textContent;
