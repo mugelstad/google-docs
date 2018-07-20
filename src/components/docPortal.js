@@ -187,16 +187,15 @@ export default class DocPortal extends React.Component {
       <div style={{ paddingLeft: 40, paddingRight: 40 }}>
         {this.state.docPortal ?
           <div>
-            <h1>Documents Portal</h1>
             <StartBar
               create={() => this.onCreate()}
               addShared={() => this.onAddShared()}
               changeTitle={e => this.handleTitle(e)}
               changeShared={e => this.setState({ sharedDocId: e.target.value })}
               title={this.state.title}
+              logout={() => this.logout()}
             />
             <DocumentList documents={this.state.documents} view={id => this.viewDoc(id)} />
-            <button type="button" onClick={() => this.logout()} >Logout</button>
           </div>
         :
           <DocEditor

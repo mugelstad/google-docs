@@ -56,7 +56,6 @@ passport.use(new LocalStrategy((username, password, done) => {
     }
     // if no user present, auth failed
     if (!user) {
-      console.log(user);
       return done(null, false, { message: 'Incorrect username.' });
     }
     // if passwords do not match, auth failed
@@ -83,7 +82,6 @@ app.post('/signup', (req, res) => {
       password: req.body.password,
     }).save()
       .then((user) => {
-        console.log("User:", user);
         res.json({success: true, id: user._id});
       })
       .catch((err) => {
@@ -143,7 +141,6 @@ app.get('/document/:id/:user', (req, res) => {
     // .populate('collaborators')
     .then((doc) => {
       // fix this part
-      console.log(doc)
       if (doc.owner && (doc.collaborators.indexOf(req.params.user) !== -1 ||
          req.params.user === doc.owner._id)) {
         res.json({ success: true, passNeeded: false, document: doc });
@@ -192,14 +189,12 @@ io.on('connection', (socket) => {
             // Checks if user is already in editors
             console.log("EDITors: ", doc.editors);
             if (doc.editors.filter(item => {
-              console.log("ITEM: ", item);
               return item.id === obj.user.id
             }).length === 0) {
               doc.editors.push(obj.user);
             }
             doc.collaborators = obj.document.collaborators;
-            socket.emit('document', {doc: doc, editor: obj.user.username, color: color});            // socket.emit('color', doc.colors.pop())
-            console.log('save doc')
+            socket.emit('document', { doc, editor: obj.user.username, color });            // socket.emit('color', doc.colors.pop())
             return doc.save();
           });
         } else {
@@ -207,7 +202,7 @@ io.on('connection', (socket) => {
         }
       })
       .then((updated) => {
-        console.log("UDPATED to: ", updated);
+        console.log('UDPATED to: ', updated);
       })
       .catch(err =>  console.log('Could not get history', err));
 
@@ -226,13 +221,11 @@ io.on('connection', (socket) => {
 
   // content
   socket.on('content', content => {
-    console.log('Content: ', content);
     socket.broadcast.emit('content', content)
   })
 
   // save
   socket.on('save', obj => {
-    console.log('Socket Save Obj', obj);
     Document.findByIdAndUpdate(obj.id, { contents: obj.content })
       .then((doc) => {
         doc.history.push({
@@ -241,14 +234,12 @@ io.on('connection', (socket) => {
           blocks: obj.content.blocks,
         });
         doc.save();
-        console.log('Updated doc to: ', doc);
-      })
+      });
   })
 
   // History
   socket.on('history', obj => {
     Document.findById(obj.docId, (err, doc) => {
-      console.log('get historyof', doc)
       socket.emit('history', doc.history);
     })
     .catch(err =>  console.log('Could not get history', err));

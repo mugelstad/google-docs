@@ -23,8 +23,7 @@ export default class DocHistory extends React.Component {
   // }
 
   selectVersion(index) {
-    console.log(this.state.revisions[index + 1].blocks)
-    console.log(this.state.revisions[index].blocks)
+    console.log(index)
     if (index < this.state.revisions.length - 1 && this.state.revisions) {
       const diff = this.props.areDifferent(
         this.state.revisions[index + 1].blocks,
@@ -36,7 +35,6 @@ export default class DocHistory extends React.Component {
         // this.setState({
         //   currVersion: this.state.revisions[index],
         //   index });
-      console.log(diff.before, diff.after)
     }
   }
 
@@ -50,7 +48,9 @@ export default class DocHistory extends React.Component {
           onHide={() => this.props.hide()}
         >
           <Modal.Header closeButton>
-            <Modal.Title id="contained-modal-title-lg">History</Modal.Title>
+            <Modal.Title id="contained-modal-title-lg">
+              History of {this.props.title} as of {date.toLocaleString()}
+            </Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Grid>
