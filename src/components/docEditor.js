@@ -251,25 +251,37 @@ export default class DocEditor extends React.Component {
   }
 
   sameContent(blocksA, blocksB) {
-    const checks = (blocksA.map((block, index) => (block.key === blocksB[index].key &&
-        block.text === blocksB[index].text &&
-        block.type === blocksB[index].type &&
-        block.depth === blocksB[index].depth &&
+
+    const diffs = {
+      after: [],
+      before: [],
+    };
+
+    let blocksShort = [];
+    let blocksLonger = [];
+    if (blocksB.length > blocksA.length) {
+      blocksShort = blocksA;
+      blocksLonger = blocksB;
+    } else {
+      blocksShort = blocksB;
+      blocksLonger = blocksA;
+    }
+
+    const checks = (blocksShort.map((block, index) => (block.key === blocksLonger[index].key &&
+        block.text === blocksLonger[index].text &&
+        block.type === blocksLonger[index].type &&
+        block.depth === blocksLonger[index].depth &&
         block.inlineStyleRanges.length ===
-        blocksB[index].inlineStyleRanges.length &&
+        blocksLonger[index].inlineStyleRanges.length &&
         ((block.inlineStyleRanges.length > 0) &&
-        (blocksB[index].inlineStyleRanges.length > 0) ?
+        (blocksLonger[index].inlineStyleRanges.length > 0) ?
         block.inlineStyleRanges.map((style, j) => (
-          style.offset === blocksB[index].inlineStyleRanges[j].offset &&
-          style.length === blocksB[index].inlineStyleRanges[j].length &&
-          style.style === blocksB[index].inlineStyleRanges[j].style))
+          style.offset === blocksLonger[index].inlineStyleRanges[j].offset &&
+          style.length === blocksLonger[index].inlineStyleRanges[j].length &&
+          style.style === blocksLonger[index].inlineStyleRanges[j].style))
           .reduce((a, b) => a && b) : true)
       )));
 
-  let diffs = {
-    after: [],
-    before: [],
-  };
     checks.forEach((item, index) => {
       if (!item) {
         diffs.before.push(blocksA[index]);
@@ -277,8 +289,14 @@ export default class DocEditor extends React.Component {
       }
     });
 
+    if (blocksB.length > blocksA.length) {
+      diffs.after.concat(blocksB.slice(blocksA.length, blocksB.length));
+    } else {
+      diffs.after.concat(blocksA.slice(blocksB.length, blocksA.length));
+    }
+
     return {
-      different: checks.reduce((a, b) => a && b),
+      different: checks.reduce((a, b) => a && b) && (blocksA.length === blocksB.length),
       differences: diffs,
     };
   }
