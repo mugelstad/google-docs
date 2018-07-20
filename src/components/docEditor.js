@@ -162,12 +162,9 @@ export default class DocEditor extends React.Component {
     clearInterval(this.autoSave);
   }
 
-<<<<<<< HEAD
 
   // Funtions
-=======
   // Editor Style Funtions
->>>>>>> 8dd016cc97ef6b96dd9a1920ea30982a71230fa9
   makeEdit(value) {
     this.onChange(RichUtils.toggleInlineStyle(this.state.editorState, value));
   }
@@ -236,10 +233,7 @@ export default class DocEditor extends React.Component {
       inlineStyle: {cursor: `CURSOR${this.state.myColor}`, highlight: `HIGHLIGHT${this.state.myColor}`},
       start: start,
       end: end,
-<<<<<<< HEAD
       room: this.props.title,
-=======
->>>>>>> 8dd016cc97ef6b96dd9a1920ea30982a71230fa9
       color: this.state.myColor
     })
 
@@ -267,7 +261,7 @@ export default class DocEditor extends React.Component {
       const user = JSON.parse(localStorage.getItem('user'));
       // fetch post request: save
       this.setState({ lastSaved: new Date() });
-      this.state.socket.emit('save', { content: convertToRaw(currentContent), id: this.props.doc._id, user });
+      this.props.socket.emit('save', { content: convertToRaw(currentContent), id: this.props.doc._id, user });
     }
   }
 
@@ -411,6 +405,10 @@ export default class DocEditor extends React.Component {
         selectionState,
         this.state.replace,
       )
+      this.props.socket.emit('content', {
+        contentState: convertToRaw(contentState),
+        selectionState: selectionState,
+      })
     });
 
     this.setState({
@@ -419,16 +417,8 @@ export default class DocEditor extends React.Component {
         contentState,
       )
     })
-    //
-    // this.props.socket.emit('content', {
-    //   contentState: convertToRaw(contentState),
-    //   selectionState: selectionState,
-    //   inlineStyle: {cursor: `CURSOR${this.state.myColor}`, highlight: `HIGHLIGHT${this.state.myColor}`},
-    //   start: start,
-    //   end: end,
-    //   room: this.props.title,
-    //   color: this.state.myColor
-    // })
+
+
   }
 
   render() {
@@ -451,7 +441,10 @@ export default class DocEditor extends React.Component {
             blockEdit={value => this.toggleBlock(value)}
             handleSearch={e => this.handleSearch(e)}
             searchValue={this.state.search}
-            search={() => this.search()}
+            search={(e) => this.onChangeSearch(e)}
+            replaceValue={this.state.replace}
+            replace={(e) => this.onChangeReplace(e)}
+            onReplace={() => this.onReplace()}
             save={() => this.save()}
             getHistory={() => this.getHistory()}
           />

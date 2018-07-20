@@ -21,21 +21,23 @@ export default class ToolBar extends React.Component {
   }
 
   render() {
+    console.log("TOOLBAR");
     return (
       <div style={{ marginTop:  20 }}>
         <Navbar>
-          <Navbar.Collapse>
-            <Navbar.Form pullLeft>
-              <FormGroup>
-                <FormControl type="text" placeholder="Find in Document" onChange={(e) => this.props.search(e)} value={this.props.searchValue}/>
-              </FormGroup>{' '}
-              <Button type="submit">Search</Button>
-            </Navbar.Form>
-            <Navbar.Form pullRight>
-              <Button onClick={() => this.props.save()} >Save Changes</Button>
-              <Button onClick={() => this.props.getHistory()} >History</Button>
-            </Navbar.Form>
-          </Navbar.Collapse>
+
+          <Navbar.Form pullLeft>
+            <FormGroup>
+              <FormControl type="text" placeholder="Find in Document" onChange={(e) => this.props.search(e)} value={this.props.searchValue}/>
+              <FormControl type="text" placeholder="Replace" onChange={(e) => this.props.replace(e)} value={this.props.replaceValue}/>
+            </FormGroup>{' '}
+            <Button type="submit" onClick={() => this.props.onReplace()}>Replace</Button>
+          </Navbar.Form>
+          <Navbar.Form pullRight>
+            <Button onClick={() => this.props.save()} >Save Changes</Button>
+            <Button onClick={() => this.props.getHistory()} >History</Button>
+          </Navbar.Form>
+
         </Navbar>
         <ButtonToolbar>
           <ButtonGroup>
