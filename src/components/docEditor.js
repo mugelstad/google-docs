@@ -329,6 +329,10 @@ export default class DocEditor extends React.Component {
         selectionState,
         this.state.replace,
       )
+      this.props.socket.emit('content', {
+        contentState: convertToRaw(contentState),
+        selectionState: selectionState,
+      })
     });
 
     this.setState({
@@ -337,16 +341,6 @@ export default class DocEditor extends React.Component {
         contentState,
       )
     })
-    //
-    // this.props.socket.emit('content', {
-    //   contentState: convertToRaw(contentState),
-    //   selectionState: selectionState,
-    //   inlineStyle: {cursor: `CURSOR${this.state.myColor}`, highlight: `HIGHLIGHT${this.state.myColor}`},
-    //   start: start,
-    //   end: end,
-    //   room: this.props.title,
-    //   color: this.state.myColor
-    // })
   }
 
   render() {
