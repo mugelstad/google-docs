@@ -23,6 +23,23 @@ export default class EditorHeader extends React.Component{
             </Button>
           </Col>
         </Row>
+        <Row>
+          <Col xs={6} sm={6} md={6}><h2>{this.props.doc.title}</h2></Col>
+          <Col style={{ marginTop: 30 }}>
+            {this.props.editors.map(editor => (
+              <span style={{ marginRight: 5,
+                backgroundColor:
+                this.props.colors[Math.floor(Math.random() * (this.props.colors).length)],
+                padding: 15,
+                borderRadius: 35,
+                border: '1px solid white',
+                color: 'white' }}
+                title={editor.username}
+              >
+                {editor.username.slice(0, 1)}
+              </span>))}
+          </Col>
+        </Row>
         <Modal
           show={this.props.shareShow}
           onHide={() => this.props.close()}

@@ -325,9 +325,11 @@ export default class DocEditor extends React.Component {
           doc={this.props.doc}
           toggle={() => this.props.toggle(this.state.color)}
           open={() => this.setState({ shareShow: true })}
+          editors={this.state.editors}
+          colors={['red', 'yellow', 'orange', 'green', 'blue', 'purple', 'brown', 'cyan']}
         />
         <br />
-        <h2>{this.props.doc.title}</h2>
+
         <br />
         <div>
           <input
