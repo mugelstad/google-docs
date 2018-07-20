@@ -1,5 +1,5 @@
-import React from 'react';
-import { Editor, EditorState, SelectionState, RichUtils, convertToRaw, convertFromRaw, Modifier } from 'draft-js';
+import React, {Component} from 'react';
+import { Editor, EditorState, SelectionState, RichUtils, convertToRaw, convertFromRaw, Modifier, CompositeDecorator } from 'draft-js';
 // import createHighlightPlugin from 'draft-js-highlight-plugin';
 
 const io = require('socket.io-client');
@@ -14,11 +14,9 @@ import Header from './editorHeader';
 import styleMap from './stylemap';
 
 export default class DocEditor extends React.Component {
-
   constructor(props) {
     super(props);
     this.state = {
-      socket: io('http://127.0.0.1:8080'),
       editorState: EditorState.createEmpty(),
       docPortal: false,
       myColor: null,
@@ -26,98 +24,144 @@ export default class DocEditor extends React.Component {
       editors: [],
       history: [],
       search: '',
+      replace: '',
       selection: SelectionState.createEmpty(),
       yourStyle: null,
       shareShow: false,
+      cursorStyle: {}
     };
     // this.onChange = editorState => this.setState({ editorState });
     this.handleKeyCommand = () => this.handleKeyCommand;
   }
 
+  updateSetState(editorState){
+    this.setState({editorState: editorState})
+  }
+
   componentDidMount() {
-    const { socket } = this.state
+    var socket = this.props.socket;
+    // const { socket } = this.state
     const user = JSON.parse(localStorage.getItem('user'));
-    socket.on('connect', () => {
-      console.log('ws connect');
-      console.log('Emitting document event, ', this.props.id);
-      // socket.emit('document', {id: this.props.id, user: user, title: this.props.title});
-      // socket.emit('document', this.props.id);
-      this.state.socket.emit('document', { document: this.props.doc, user: user, title: this.props.title, id: this.props.id, color: this.state.myColor });
-      // call in document portal front-end side
-      socket.on('document', (obj) => {
-
-        console.log('Color us: ', obj.color);
-        if (obj.doc.contents) {
-          this.setState({
-            document: obj.doc,
-            user: user,
-            editors: obj.doc.editors,
-            editorState: EditorState.createWithContent(convertFromRaw({
-              entityMap: {},
-              blocks: obj.doc.contents.blocks,
-            })),
-            myColor: obj.color
-          })
-        } else {
-          this.setState({
-            document: obj.doc,
-            editors: obj.editors,
-            myColor: obj.color
-          })
-        }
-      });
-
-      socket.on('history', (history) => {
-        this.setState({ history });
-      });
-
-      //
-
-      socket.on('content', (content) => {
-
-        var c = convertFromRaw(content.contentState);
-        console.log("C: ", c);
-        var selectionState = SelectionState.createEmpty();
-        var s = selectionState.merge(content.selectionState);
-        console.log("S: ", s);
-
-        if (content.start === content.end) {
-          // var content = Modifier.applyInlineStyle(c, s, content.inlineStyle.cursor);
-          var modified = Modifier.insertText(c, s, '|')
-        } else {
-          var modified = Modifier.applyInlineStyle(c, s, content.inlineStyle.highlight);
-        }
-
-        console.log("Content: ", modified);
-        var e = EditorState.createWithContent(modified);
-        console.log("E", e);
-        // var s = this.state.editorState.getSelection();
-
-        var newEditor = EditorState.forceSelection(e, s);
+    // console.log("Emitting document event, ", this.props.id);
+    // socket.emit('document', {id: this.props.id, user: user, title: this.props.title});
+    // socket.emit('document', this.props.id);
+    // socket.emit('document', { document: this.props.doc, user: user, title: this.props.title, id: this.props.id, color: this.state.myColor });
+    // call in document portal front-end side
+    socket.on('document', (obj) => {
+      console.log('Color us: ', obj.color);
+      if (obj.doc.contents) {
         this.setState({
-          editorState: newEditor,
-          selection: s,
-          yourStyle: content.inlineStyle.highlight
+          document: obj.doc,
+          user: user,
+          // editors: obj.doc.editors,
+          editorState: EditorState.createWithContent(convertFromRaw({
+            entityMap: {},
+            blocks: obj.doc.contents.blocks,
+          })),
+          myColor: obj.color
         })
+      } else {
+        this.setState({
+          document: obj.doc,
+          // editors: obj.editors,
+          myColor: obj.color
+        })
+      }
+    });
+
+    socket.on('leave', obj => {
+      // var array = this.state.editors.splice();
+      // var index = array.indexOf(obj.editor);
+      // array.splice(index, 1);
+      // this.setState({
+      //   editors: array
+      // })
+      this.props.toggle();
+      if (obj.message) {
+        alert(obj.message);
+      }
+    })
+
+    socket.on('editors', (editor) => {
+      var arr = this.state.editors.slice();
+      arr.push(editor);
+      console.log("MY ED: ", arr);
+      this.setState({
+        editors: arr
       })
+    })
 
+    socket.on('history', (history) => {
+      console.log(history);
+      this.setState({ history });
     });
 
-    socket.on('errorMessage', message => {
-      // YOUR CODE HERE (3)
-      console.log(message);
-      alert(message);
-    });
+    socket.on('content', (content) => {
 
-    socket.on('disconnect', () => { console.log('ws disconnect'); });
+     var c = convertFromRaw(content.contentState);
+     // console.log("C: ", c);
+     var selectionState = SelectionState.createEmpty();
+     var s = selectionState.merge(content.selectionState);
+     // console.log("S: ", s);
+     var mySelection = this.state.editorState.getSelection()
+     //making cursor
+     if (content.start === content.end) {
 
-    // autoSave every 5 minutes
-    this.autoSave = setInterval(() => this.autosave(), 30000);
+       //find x and y of mouse
+
+       var e = EditorState.createWithContent(c);
+       var edit = this.updateSetState(EditorState.forceSelection(e, s));
+       var range = window.getSelection().getRangeAt(0);
+       // let range = document.createRange(selection);
+
+       this.updateSetState(EditorState.forceSelection(e, mySelection))
+       // console.log('selection', selection)
+
+       // range.selectNode(document.getElementById("editor"));
+       let rect = range.getBoundingClientRect();
+       // let rect = range.getClientRects();
+       console.log('rect', rect)
+
+       var modified = c;
+
+       //set div styles for cursor
+       this.setState({cursorStyle: {
+         top: rect.top, bottom: rect.bottom,
+         left: rect.left, right: rect.right,
+         width: '2px',
+         height: rect.height,
+         backgroundColor: content.color, position: 'absolute'
+       }})
+
+     } else {
+       var modified = Modifier.applyInlineStyle(c, s, content.inlineStyle.highlight);
+       // console.log("Content: ", modified);
+       var e = EditorState.createWithContent(modified);
+       // console.log("E", e);
+       // var s = this.state.editorState.getSelection();
+
+       var newEditor = EditorState.forceSelection(e, mySelection);
+       this.setState({
+         editorState: newEditor,
+         selection: s,
+         yourStyle: content.inlineStyle.highlight
+       })
+     }
+   })
+
+   socket.on('errorMessage', message => {
+     // YOUR CODE HERE (3)
+     console.log(message);
+     alert(message);
+   });
+
+   this.autoSave = setInterval(() => this.autosave(), 30000);
   }
 
   componentWillUnmount() {
     clearInterval(this.autoSave);
   }
+
 
   // Funtions
   makeEdit(value) {
@@ -182,32 +226,21 @@ export default class DocEditor extends React.Component {
 
     console.log("M: ", modified);
     // WILL CHANGE THE INLINESTYLE BE CONCAT BASED ON MYCOLOR
-    this.state.socket.emit('content', {
+    this.props.socket.emit('content', {
       contentState: convertToRaw(modified),
       selectionState: selectionState,
       inlineStyle: {cursor: `CURSOR${this.state.myColor}`, highlight: `HIGHLIGHT${this.state.myColor}`},
       start: start,
-      end: end
-      // color: this.state.myColor
+      end: end,
+      room: this.props.title,
+      color: this.state.myColor
     })
-
-    // Real-time Highlight changes
-    // this.state.socket.emit('highlight',
-    // {
-    //   contentState: convertToRaw(currentContent),
-    //   selectionState: selectionState,
-    //   inlineStyle: 'HIGHLIGHT'
-    // })
 
     this.setState({
       editorState,
     })
 
-    // selectedText.applyInlineStyle({
-    //   contentState: currentContent,
-    //   selectionState: selectionState,
-    //   inlineStyle: `backgroundColor: ${this.state.myColor}`
-    // })
+
   }
 
   // Different Function to implement autosave only when different
@@ -247,7 +280,7 @@ export default class DocEditor extends React.Component {
 
   getHistory() {
     this.handleShow();
-    this.state.socket.emit('history', { docId: this.props.doc._id });
+    this.props.socket.emit('history', { docId: this.props.doc._id, title: this.props.title });
   }
 
   sameContent(blocksA, blocksB) {
@@ -301,36 +334,94 @@ export default class DocEditor extends React.Component {
     };
   }
 
-  search() {
-    var text = document.getElementById('editor').textContent;
-    console.log('Text: ', text);
-
-    let input = this.state.search.split(' ');
-    console.log('INPUT', input)
-
-    text = text.split(' ');
-    console.log('TEXT', text)
-    let found = false;
-
-    for (var i=0; i<text.length; i++){
-      for (var j=0; j<input.length; j++){
-        if (text[i] === input[j]){
-          found = true;
-          break;
+  generateDecorator(highlightTerm){
+    const regex = new RegExp(highlightTerm, 'g');
+    return new CompositeDecorator([{
+      strategy: (contentBlock, callback) => {
+        if (highlightTerm !== '') {
+          this.findWithRegex(regex, contentBlock, callback);
         }
-      }
+      },
+      component: this.SearchHighlight
+    }])
+  };
+
+  findWithRegex(regex, contentBlock, callback){
+    const text = contentBlock.getText();
+    let matchArr, start, end;
+    while ((matchArr = regex.exec(text)) !== null) {
+      start = matchArr.index;
+      end = start + matchArr[0].length;
+      callback(start, end);
+    }
+};
+
+  SearchHighlight(props) {
+    return <span style={{backgroundColor: 'yellow'}} className="search-and-replace">{props.children}</span>
+  }
+
+
+  onChangeSearch(e){
+      const search = e.target.value;
+      this.setState({
+        search,
+        editorState: EditorState.set(this.state.editorState, { decorator: this.generateDecorator(search) }),
+      });
     }
 
-    console.log(found)
+  onChangeReplace(e) {
+    this.setState({
+      replace: e.target.value,
+    });
+  }
+
+  onReplace(){
+    console.log(`replacing "${this.state.search}" with "${this.state.replace}"`);
+    const regex = new RegExp(this.state.search, 'g');
+    const { editorState } = this.state;
+    const selectionsToReplace = [];
+    const blockMap = editorState.getCurrentContent().getBlockMap();
+
+    blockMap.forEach((contentBlock) => (
+      this.findWithRegex(regex, contentBlock, (start, end) => {
+        const blockKey = contentBlock.getKey();
+        const blockSelection = SelectionState
+          .createEmpty(blockKey)
+          .merge({
+            anchorOffset: start,
+            focusOffset: end,
+          });
+
+        selectionsToReplace.push(blockSelection)
+      })
+    ));
+
+    let contentState = editorState.getCurrentContent();
+
+    selectionsToReplace.forEach(selectionState => {
+      contentState = Modifier.replaceText(
+        contentState,
+        selectionState,
+        this.state.replace,
+      )
+    });
+
+    this.setState({
+      editorState: EditorState.push(
+        editorState,
+        contentState,
+      )
+    })
     //
-    // let selection = window.getSelection();
-    //
-    // var range = document.createRange();
-    // range.selectNode(text[0])
-    // selection.addRange(range)
-    // selection.addRange()
-    //
-    // console.log('selection', selectionRange)
+    // this.props.socket.emit('content', {
+    //   contentState: convertToRaw(contentState),
+    //   selectionState: selectionState,
+    //   inlineStyle: {cursor: `CURSOR${this.state.myColor}`, highlight: `HIGHLIGHT${this.state.myColor}`},
+    //   start: start,
+    //   end: end,
+    //   room: this.props.title,
+    //   color: this.state.myColor
+    // })
   }
 
   render() {
@@ -370,6 +461,7 @@ export default class DocEditor extends React.Component {
           </div>
         </div>
         <p>Last Saved: <i>{this.state.lastSaved ? this.state.lastSaved.toTimeString() : ''}</i></p>
+        <div id="cursor" style={this.state.cursorStyle}></div>
         {this.state.historyShow ? <DocumentHistory
           close={() => this.handleClose()}
           revisions={this.state.history}

@@ -97,6 +97,9 @@ app.post('/signup', (req, res) => {
 app.post('/login', passport.authenticate('local'), (req, res) => {
   User.findOne({ username: req.body.username, password: req.body.password })
   .exec((err, user) => {
+    if (!user) {
+      res.json({ success: false });
+    }
     res.json({ success: true, user: user });
   });
 });
@@ -131,7 +134,7 @@ app.get('/documents', (req, res) => {
   console.log('USER', req.user)
   Document.find()
     .then((docs) => {
-      console.log("DOCS: ", docs);
+      //console.log("DOCS: ", docs);
       res.send(docs);
     });
 });
@@ -172,10 +175,12 @@ io.on('connection', (socket) => {
           socket.join(obj.title, () => {
             var room = io.sockets.adapter.rooms[obj.title];
             var rooms = io.sockets.adapter.rooms
+            console.log("ROOM: ", room);
             console.log('Rooms: ', rooms);
             console.log('L:', room.length);
             if (room.length > 6) {
-              return socket.emit('errorMessage', 'Document cannot hold more than 6 editors')
+              socket.leave(obj.title);
+              return socket.emit('leave', {message: 'Document cannot hold more than 6 editors', editor: obj.user.username})
             }
             console.log('Clients: ', room);
             io.to(obj.id, 'a new user has joined');
@@ -184,17 +189,25 @@ io.on('connection', (socket) => {
               color = obj.color;
             } else {
               color = doc.colors.pop();
+              doc.colors.unshift(color);
             }
             console.log("SENDING COLOR: ", color);
             // Checks if user is already in editors
-            console.log("EDITors: ", doc.editors);
-            if (doc.editors.filter(item => {
-              return item.id === obj.user.id
-            }).length === 0) {
-              doc.editors.push(obj.user);
-            }
-            doc.collaborators = obj.document.collaborators;
-            socket.emit('document', { doc, editor: obj.user.username, color });            // socket.emit('color', doc.colors.pop())
+            //console.log("EDITors: ", doc.editors);
+            // if (doc.editors.filter(item => {
+            //   //console.log("ITEM: ", item);
+            //   return item.id === obj.user.id
+            // }).length === 0) {
+            //   doc.editors.push(obj.user);
+            // }
+
+            // check if collaborators are Updated
+            // if (doc.collaborators[doc.collaborators.length - 1] !== obj.document.collaborators[doc.collaborators.length - 1]) {
+            //   doc.collaborators = obj.document.collaborators; // overriding ...-> FIX THIS
+            // }
+            // doc.collaborators = obj.document.collaborators; // overriding ...-> FIX THIS
+            socket.emit('document', {doc: doc, color: color});
+            console.log('save doc')
             return doc.save();
           });
         } else {
@@ -208,20 +221,34 @@ io.on('connection', (socket) => {
 
   });
 
-
-  // highlight
-  socket.on('highlight', highlight => {
-    socket.broadcast.emit('highlight', highlight)
+  // add shared
+  socket.on('addshared', obj => {
+    console.log("ADD SHARED");
+    // console.log('obj: ', obj);
+    Document.findById(obj.id)
+      .then((doc) => {
+        doc.collaborators = obj.document.collaborators;
+        return doc.save();
+      })
+      .then((saved) => {
+        console.log('Successfully saved ', saved);
+      })
+      .catch((err) => {
+        console.log("ERROR in adding shared ", err);
+      })
   })
 
-  // cursor
-  socket.on('cursor', cursor => {
-    socket.broadcast.emit('cursor', cursor)
+  // add Editors
+  socket.on('addeditor', obj => {
+    console.log("ADD Editors");
+    socket.broadcast.to(obj.document.title).emit('editors', obj.editor)
   })
 
-  // content
+
+  // content (doc's content, highlight, cursor)
   socket.on('content', content => {
-    socket.broadcast.emit('content', content)
+    console.log('Content: ', content);
+    socket.broadcast.to(content.room).emit('content', content)
   })
 
   // save
@@ -246,18 +273,16 @@ io.on('connection', (socket) => {
   });
 
   socket.on('exit', obj => {
-    Document.findById(obj.doc._id)
-      .then((doc) => {
-        socket.leave(obj.doc.title);
-        doc.colors.push(obj.color);
-        return doc.save()
-      })
-      .then((updated) => {
-        console.log("Updated with color: ", updated);
-      })
-      .catch((err) => {
-        console.log('ERROR in exiting  a doc: ', err);
-      })
+    // Document.find
+    var editor = obj.editor;
+    console.log("Editor: ", editor);
+    socket.broadcast.to(obj.doc.title).emit('leave', {message: '', editor: editor});
+    var client = io.sockets.adapter.rooms[obj.doc.title];
+    console.log('Clients: ', client);
+    console.log(obj.doc.title);
+    socket.leave(obj.doc.title);
+    console.log('Clients after: ', client);
+
   })
 
 });
