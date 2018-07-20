@@ -1,4 +1,5 @@
 import React from 'react';
+import { DropdownButton, MenuItem } from 'react-bootstrap';
 
 export default class FontColourSelect extends React.Component {
   constructor(props) {
@@ -6,17 +7,16 @@ export default class FontColourSelect extends React.Component {
   }
 
   render() {
-    return (<div style={{ display: 'inline' }}>
-      <select onChange={e => this.props.edit(e.target.value)}>
-        <option value="red">Red</option>
-        <option value="blue">Blue</option>
-        <option value="green">Green</option>
-        <option value="yellow">Yellow</option>
-        <option value="purple">Purple</option>
-        <option value="black">Black</option>
-        <option value="gray">Gray</option>
-      </select>
-    </div>);
+    return (
+      <DropdownButton title="Font Size" id="bg-nested-dropdown" onSelect={eventKey => this.props.edit(eventKey)}>
+        <MenuItem eventKey="red">Red</MenuItem>
+        <MenuItem eventKey="blue">Blue</MenuItem>
+        <MenuItem eventKey="green">Green</MenuItem>
+        <MenuItem eventKey="yellow">Yellow</MenuItem>
+        <MenuItem eventKey="purple">Purple</MenuItem>
+        <MenuItem eventKey="black">Black</MenuItem>
+        <MenuItem eventKey="gray">Gray</MenuItem>
+      </DropdownButton>);
 
   }
 }

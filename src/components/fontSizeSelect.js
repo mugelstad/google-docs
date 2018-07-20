@@ -1,4 +1,5 @@
 import React from 'react';
+import { DropdownButton, MenuItem } from 'react-bootstrap';
 
 export default class FontSizeSelect extends React.Component {
   constructor(props) {
@@ -6,23 +7,22 @@ export default class FontSizeSelect extends React.Component {
   }
 
   render() {
-    return (<div style={{ display: 'inline' }}>
-      <select onChange={(e) => this.props.edit(e.target.value)}>
-        <option value="8">8</option>
-        <option value="9">9</option>
-        <option value="10">10</option>
-        <option value="12">12</option>
-        <option value="14">14</option>
-        <option value="16">18</option>
-        <option value="20">20</option>
-        <option value="24">24</option>
-        <option value="28">28</option>
-        <option value="32">32</option>
-        <option value="36">36</option>
-        <option value="40">40</option>
-        <option value="48">48</option>
-        <option value="60">60</option>
-      </select>
-    </div>);
+    return (
+      <DropdownButton title="Font Size" id="bg-nested-dropdown" onSelect={eventKey => this.props.edit(eventKey)}>
+        <MenuItem eventKey="8">8</MenuItem>
+        <MenuItem eventKey="9">9</MenuItem>
+        <MenuItem eventKey="10">10</MenuItem>
+        <MenuItem eventKey="12">12</MenuItem>
+        <MenuItem eventKey="14">14</MenuItem>
+        <MenuItem eventKey="16">18</MenuItem>
+        <MenuItem eventKey="20">20</MenuItem>
+        <MenuItem eventKey="24">24</MenuItem>
+        <MenuItem eventKey="28">28</MenuItem>
+        <MenuItem eventKey="32">32</MenuItem>
+        <MenuItem eventKey="36">36</MenuItem>
+        <MenuItem eventKey="40">40</MenuItem>
+        <MenuItem eventKey="48">48</MenuItem>
+        <MenuItem eventKey="60">60</MenuItem>
+      </DropdownButton>);
   }
 }
