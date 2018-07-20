@@ -328,9 +328,6 @@ export default class DocEditor extends React.Component {
           editors={this.state.editors}
           colors={['red', 'yellow', 'orange', 'green', 'blue', 'purple', 'brown', 'cyan']}
         />
-        <br />
-
-        <br />
         <div>
           <input
             type="text"
@@ -349,15 +346,16 @@ export default class DocEditor extends React.Component {
             blockEdit={value => this.toggleBlock(value)}
           />
         </div>
-        <div id="editor" style={{ border: '1px red solid', textAlign: this.state.align, maxHeight: 400, overflowY: 'scroll' }}>
-          <Editor
-            textAlignment="right"
-            editorState={this.state.editorState}
-            onChange={this.onChange.bind(this)}
-            handleKeyCommand={this.handleKeyCommand}
-            customStyleMap={styleMap}
-            blockStyleFn={this.myBlockStyleFn}
-          />
+        <div id="editor" style={{ backgroundColor: '#cfcfcf', textAlign: this.state.align, marginLeft: -50, marginRight: -50, paddingTop: 50 }}>
+          <div style={{ backgroundColor: 'white', border: '1px solid #a9a9a9', margin: 50, padding: 30, paddingTop: 40 }}>
+            <Editor
+              editorState={this.state.editorState}
+              onChange={this.onChange.bind(this)}
+              handleKeyCommand={this.handleKeyCommand}
+              customStyleMap={styleMap}
+              blockStyleFn={this.myBlockStyleFn}
+            />
+          </div>
         </div>
         <p>Last Saved: <i>{this.state.lastSaved ? this.state.lastSaved.toTimeString() : ''}</i></p>
         {this.state.historyShow ? <DocumentHistory
