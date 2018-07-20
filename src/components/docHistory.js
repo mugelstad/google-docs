@@ -15,7 +15,7 @@ export default class DocHistory extends React.Component {
   }
 
   componentDidMount() {
-    this.setState({ currVersion: this.props.revisions[0] });
+    // this.setState({ currVersion: this.props.revisions[0] });
   }
 
   // restore() {

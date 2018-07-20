@@ -1,6 +1,5 @@
 import React from 'react';
-import { Editor, EditorState, SelectionState, RichUtils, convertToRaw, convertFromRaw, Modifier, Modal } from 'draft-js';
-import { Row, Col, Button, Glyphicon } from 'react-bootstrap';
+import { Editor, EditorState, SelectionState, RichUtils, convertToRaw, convertFromRaw, Modifier } from 'draft-js';
 // import createHighlightPlugin from 'draft-js-highlight-plugin';
 
 const io = require('socket.io-client');
@@ -8,6 +7,7 @@ const io = require('socket.io-client');
 // Components
 import ToolBar from './toolbar';
 import DocumentHistory from './docHistory';
+import Header from './editorHeader';
 // import createHighlightPlugin from 'draft-js-highlight-plugin';
 
 // Custom Styles
@@ -28,6 +28,7 @@ export default class DocEditor extends React.Component {
       search: '',
       selection: SelectionState.createEmpty(),
       yourStyle: null,
+      shareShow: false,
     };
     // this.onChange = editorState => this.setState({ editorState });
     this.handleKeyCommand = () => this.handleKeyCommand;
@@ -312,31 +313,22 @@ export default class DocEditor extends React.Component {
     // selection.addRange()
     //
     // console.log('selection', selectionRange)
-
-
   }
 
   render() {
     // console.log('portal: ', this.state.docPortal);
     return (
       <div>
-        <Row style={{ marginTop: 20 }}>
-          <Col xs={9} sm={9} md={9}>
-            <Button type="button" onClick={() => this.props.toggle(this.state.myColor)}>
-              <Glyphicon glyph="arrow-left" /> Back to Documents Portal
-            </Button>
-          </Col>
-          <Col xs={3} sm={3} md={3}>
-            <Button>
-              <Glyphicon glyph="share" /> Share Document
-            </Button>
-          </Col>
-        </Row>
-
+        <Header
+          shareShow={this.state.shareShow}
+          close={() => this.setState({ shareShow: false })}
+          doc={this.props.doc}
+          toggle={() => this.props.toggle(this.state.color)}
+          open={() => this.setState({ shareShow: true })}
+        />
         <br />
         <h2>{this.props.doc.title}</h2>
         <br />
-        <p>Shareable Document ID: {this.props.doc._id}</p>
         <div>
           <input
             type="text"

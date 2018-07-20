@@ -10,16 +10,12 @@ export default class DocumentList extends React.Component{
     };
   }
 
-  showLastUpdate() {
-    this.setState({ showLastUpdate: !this.state.showLastUpdate });
-  }
-
   render() {
     return (
       <div style={{
         backgroundColor: '#0057e7',
-        width: 10000,
         marginLeft: -50,
+        marginRight: -50,
         paddingLeft: 50,
         paddingTop: 30,
         height: 1000 }}
@@ -30,7 +26,6 @@ export default class DocumentList extends React.Component{
               vertical
               onClick={() => this.props.view(doc._id)}
               style={{ marginRight: 20, width: 150 }}
-              onMouseEnter={() => this.showLastUpdate()}
             >
               <Button style={{ height: 150 }}>
                 <Glyphicon glyph="file" />
