@@ -1,5 +1,6 @@
 import React from 'react';
-import { Editor, EditorState, SelectionState, RichUtils, convertToRaw, convertFromRaw, Modifier } from 'draft-js';
+import { Editor, EditorState, SelectionState, RichUtils, convertToRaw, convertFromRaw, Modifier, Modal } from 'draft-js';
+import { Row, Col, Button, Glyphicon } from 'react-bootstrap';
 // import createHighlightPlugin from 'draft-js-highlight-plugin';
 
 const io = require('socket.io-client');
@@ -214,8 +215,6 @@ export default class DocEditor extends React.Component {
     if (!this.sameContent(currentContent.blocks,
       this.state.document.history[this.state.document.history.length - 1].blocks).different) {
       this.save();
-    } else {
-      console.log('Same COnetnet');
     }
   }
 
@@ -321,13 +320,23 @@ export default class DocEditor extends React.Component {
     // console.log('portal: ', this.state.docPortal);
     return (
       <div>
-        <button type="button" onClick={() => this.props.toggle(this.state.myColor)}>Back to Documents Portal</button>
+        <Row style={{ marginTop: 20 }}>
+          <Col xs={9} sm={9} md={9}>
+            <Button type="button" onClick={() => this.props.toggle(this.state.myColor)}>
+              <Glyphicon glyph="arrow-left" /> Back to Documents Portal
+            </Button>
+          </Col>
+          <Col xs={3} sm={3} md={3}>
+            <Button>
+              <Glyphicon glyph="share" /> Share Document
+            </Button>
+          </Col>
+        </Row>
+
         <br />
         <h2>{this.props.doc.title}</h2>
         <br />
         <p>Shareable Document ID: {this.props.doc._id}</p>
-        <p style={{ overflowY: 'scroll', maxHeight: 30 }}>Current editors: <ul>{this.state.editors.map(editor =>
-          (<li>{editor.username}</li>))}</ul></p>
         <div>
           <input
             type="text"
