@@ -62,6 +62,7 @@ export default class Login extends React.Component {
       }
     })
     .catch((err) => {
+      alert("Incorrect username or password. Please register")
       console.log('Error: ', err);
     });
 

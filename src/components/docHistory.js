@@ -8,8 +8,8 @@ export default class DocHistory extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      revisions: this.props.doc.history.reverse(),
-      currVersion: this.props.doc.history[0],
+      revisions: this.props.revisions,
+      currVersion: this.props.revisions[0],
       index: 0,
     };
   }
@@ -30,7 +30,9 @@ export default class DocHistory extends React.Component {
       this.setState({ before: diff.before,
         after: diff.after,
         currVersion: this.state.revisions[index],
-        index });
+        index,
+        toRestore: this.state.revisions[index].blocks
+       });
         // this.setState({
         //   currVersion: this.state.revisions[index],
         //   index });
@@ -38,7 +40,9 @@ export default class DocHistory extends React.Component {
       this.setState({ before: [],
         after: this.state.revisions[index],
         currVersion: this.state.revisions[index],
-        index });
+        index,
+        toRestore: this.state.revisions[index].blocks
+      });
     }
   }
 
@@ -124,7 +128,7 @@ export default class DocHistory extends React.Component {
 
                 </Col>
                 <Col xs={12} sm={3} md={2} style={{ overflowY: 'scroll', maxHeight: 500 }}>
-                  {(this.state.revisions ? this.state.revisions : this.props.revisions.reverse()).map((doc, index) => {
+                  {(this.state.revisions ? this.state.revisions : this.props.revisions).map((doc, index) => {
                     return (
                       <Alert
                         bsStyle={(this.state.index === index) ? 'success' : 'warning'}
@@ -137,6 +141,11 @@ export default class DocHistory extends React.Component {
                   })
                 }
                 </Col>
+              </Row>
+              <Row>
+                <Button onClick={() => this.props.restore(this.state.toRestore)} >
+                  Restore this Version
+                </Button>
               </Row>
             </Grid>
           </Modal.Body>

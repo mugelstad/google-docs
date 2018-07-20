@@ -286,6 +286,7 @@ io.on('connection', (socket) => {
           blocks: obj.content.blocks,
         });
         doc.save();
+        socket.emit('save', doc)
       });
   })
 

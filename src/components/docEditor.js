@@ -164,11 +164,19 @@ export default class DocEditor extends React.Component {
      }
    })
 
+   socket.on('save', (doc) => {
+     this.setState({
+       history: doc.history
+     })
+   })
+
+
    socket.on('errorMessage', message => {
      // YOUR CODE HERE (3)
      console.log(message);
      alert(message);
    });
+
 
    this.autoSave = setInterval(() => this.autosave(), 30000);
   }
@@ -263,7 +271,7 @@ export default class DocEditor extends React.Component {
   autosave() {
     const currentContent = convertToRaw(this.state.editorState.getCurrentContent());
     if (this.state.history.length > 0 && !this.sameContent(currentContent.blocks,
-      this.state.document.history[this.state.document.history.length - 1].blocks).different) {
+      this.state.history[this.state.history.length - 1].blocks).different) {
       this.save();
     } else {
       console.log('Same Content')
@@ -299,6 +307,16 @@ export default class DocEditor extends React.Component {
   getHistory() {
     this.handleShow();
     this.props.socket.emit('history', { docId: this.props.doc._id, title: this.props.title });
+  }
+
+  restore(blocks) {
+    const user = JSON.parse(localStorage.getItem('user'));
+    this.props.socket.emit('save', { content: { blocks }, id: this.props.doc._id, user });
+    this.setState({ editorState: EditorState.createWithContent(convertFromRaw({
+      entityMap: {},
+      blocks,
+      }))
+    });
   }
 
   sameContent(blocksA, blocksB) {
@@ -341,9 +359,9 @@ export default class DocEditor extends React.Component {
     });
 
     if (blocksB.length > blocksA.length) {
-      diffs.after.concat(blocksB.slice(blocksA.length, blocksB.length));
+      diffs.after = diffs.after.concat(blocksB.slice(blocksA.length, blocksB.length));
     } else {
-      diffs.after.concat(blocksA.slice(blocksB.length, blocksA.length));
+      diffs.after = diffs.after.concat(blocksA.slice(blocksB.length, blocksA.length));
     }
 
     return {
@@ -449,7 +467,6 @@ export default class DocEditor extends React.Component {
           toggle={() => this.props.toggle(this.state.color)}
           open={() => this.setState({ shareShow: true })}
           editors={this.state.editors}
-          colors={['red', 'yellow', 'orange', 'green', 'blue', 'purple', 'brown', 'cyan']}
         />
         <div>
           <ToolBar
@@ -481,13 +498,14 @@ export default class DocEditor extends React.Component {
         <div id="cursor" style={this.state.cursorStyle}></div>
         {this.state.historyShow ? <DocumentHistory
           close={() => this.handleClose()}
-          revisions={this.state.history}
+          revisions={this.state.history.reverse()}
           open={() => this.handleShow()}
           show={this.state.historyShow}
           title={this.props.doc.title}
           hide={() => this.handleClose()}
           doc={this.props.doc}
           areDifferent={(a,b) => this.sameContent(a, b)}
+          restore={blocks => this.restore(blocks)}
         /> : <div />}
       </div>
     );
