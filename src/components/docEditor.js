@@ -110,7 +110,7 @@ export default class DocEditor extends React.Component {
     socket.on('disconnect', () => { console.log('ws disconnect'); });
 
     // autoSave every 5 minutes
-    this.autoSave = setInterval(() => this.autosave(), 3000);
+    this.autoSave = setInterval(() => this.autosave(), 30000);
   }
 
   componentWillUnmount() {
