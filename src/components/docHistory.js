@@ -8,8 +8,8 @@ export default class DocHistory extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      revisions: this.props.revisions.reverse(),
-      currVersion: this.props.revisions[this.props.revisions.length-1],
+      revisions: this.props.doc.history.reverse(),
+      currVersion: this.props.doc.history[0],
       index: 0,
     };
   }
@@ -23,7 +23,6 @@ export default class DocHistory extends React.Component {
   // }
 
   selectVersion(index) {
-    console.log(index)
     if (index < this.state.revisions.length - 1 && this.state.revisions) {
       const diff = this.props.areDifferent(
         this.state.revisions[index + 1].blocks,
@@ -35,6 +34,11 @@ export default class DocHistory extends React.Component {
         // this.setState({
         //   currVersion: this.state.revisions[index],
         //   index });
+    } else {
+      this.setState({ before: [],
+        after: this.state.revisions[index],
+        currVersion: this.state.revisions[index],
+        index });
     }
   }
 
