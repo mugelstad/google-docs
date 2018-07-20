@@ -108,7 +108,7 @@ export default class DocEditor extends React.Component {
            left: rect.left, right: rect.right,
            width: '2px',
            height: rect.height,
-           backgroundColor: this.state.myColor, position: 'absolute'
+           backgroundColor: content.color, position: 'absolute'
          }})
 
        } else {
@@ -207,8 +207,8 @@ export default class DocEditor extends React.Component {
       inlineStyle: {cursor: `CURSOR${this.state.myColor}`, highlight: `HIGHLIGHT${this.state.myColor}`},
       start: start,
       end: end,
-      room: this.props.title
-      // color: this.state.myColor
+      room: this.props.title,
+      color: this.state.myColor
     })
 
     // Real-time Highlight changes
