@@ -8,7 +8,7 @@ export default class FontColourSelect extends React.Component {
 
   render() {
     return (
-      <DropdownButton title="Font Size" id="bg-nested-dropdown" onSelect={eventKey => this.props.edit(eventKey)}>
+      <DropdownButton title="Font Colour" id="bg-nested-dropdown" onSelect={eventKey => this.props.edit(eventKey)}>
         <MenuItem eventKey="red">Red</MenuItem>
         <MenuItem eventKey="blue">Blue</MenuItem>
         <MenuItem eventKey="green">Green</MenuItem>
