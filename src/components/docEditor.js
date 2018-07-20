@@ -1,5 +1,5 @@
-import React from 'react';
-import { Editor, EditorState, SelectionState, RichUtils, convertToRaw, convertFromRaw, Modifier } from 'draft-js';
+import React, {Component} from 'react';
+import { Editor, EditorState, SelectionState, RichUtils, convertToRaw, convertFromRaw, Modifier, CompositeDecorator } from 'draft-js';
 // import createHighlightPlugin from 'draft-js-highlight-plugin';
 
 const io = require('socket.io-client');
@@ -13,11 +13,9 @@ import DocumentHistory from './docHistory';
 import styleMap from './stylemap';
 
 export default class DocEditor extends React.Component {
-
   constructor(props) {
     super(props);
     this.state = {
-      socket: io('http://127.0.0.1:8080'),
       editorState: EditorState.createEmpty(),
       docPortal: false,
       myColor: null,
@@ -25,6 +23,7 @@ export default class DocEditor extends React.Component {
       editors: [],
       history: [],
       search: '',
+      replace: '',
       selection: SelectionState.createEmpty(),
       yourStyle: null,
       cursorStyle: {}
@@ -38,105 +37,124 @@ export default class DocEditor extends React.Component {
   }
 
   componentDidMount() {
-    const { socket } = this.state
+    var socket = this.props.socket;
+    // const { socket } = this.state
     const user = JSON.parse(localStorage.getItem('user'));
-    socket.on('connect', () => {
-      console.log('ws connect');
-      console.log("Emitting document event, ", this.props.id);
-      // socket.emit('document', {id: this.props.id, user: user, title: this.props.title});
-      // socket.emit('document', this.props.id);
-      this.state.socket.emit('document', { document: this.props.doc, user: user, title: this.props.title, id: this.props.id, color: this.state.myColor });
-      // call in document portal front-end side
-      socket.on('document', (obj) => {
-        console.log('Color us: ', obj.color);
-        if (obj.doc.contents) {
-          this.setState({
-            document: obj.doc,
-            user: user,
-            editors: obj.doc.editors,
-            editorState: EditorState.createWithContent(convertFromRaw({
-              entityMap: {},
-              blocks: obj.doc.contents.blocks,
-            })),
-            myColor: obj.color
-          })
-        } else {
-          this.setState({
-            document: obj.doc,
-            editors: obj.editors,
-            myColor: obj.color
-          })
-        }
-      });
-
-      socket.on('history', (history) => {
-        console.log(history);
-        this.setState({ history });
-      });
-
-      socket.on('content', (content) => {
-
-       var c = convertFromRaw(content.contentState);
-       // console.log("C: ", c);
-       var selectionState = SelectionState.createEmpty();
-       var s = selectionState.merge(content.selectionState);
-       // console.log("S: ", s);
-       var mySelection = this.state.editorState.getSelection()
-       //making cursor
-       if (content.start === content.end) {
-
-         //find x and y of mouse
-
-         var e = EditorState.createWithContent(c);
-         var edit = this.updateSetState(EditorState.forceSelection(e, s));
-         var range = window.getSelection().getRangeAt(0);
-         // let range = document.createRange(selection);
-
-         this.updateSetState(EditorState.forceSelection(e, mySelection))
-         // console.log('selection', selection)
-
-         // range.selectNode(document.getElementById("editor"));
-         let rect = range.getBoundingClientRect();
-         // let rect = range.getClientRects();
-         console.log('rect', rect)
-
-         var modified = c;
-
-         //set div styles for cursor
-         this.setState({cursorStyle: {
-           top: rect.top, bottom: rect.bottom,
-           left: rect.left, right: rect.right,
-           width: '2px',
-           height: rect.height,
-           backgroundColor: content.color, position: 'absolute'
-         }})
-
-       } else {
-         var modified = Modifier.applyInlineStyle(c, s, content.inlineStyle.highlight);
-         // console.log("Content: ", modified);
-         var e = EditorState.createWithContent(modified);
-         // console.log("E", e);
-         // var s = this.state.editorState.getSelection();
-
-         var newEditor = EditorState.forceSelection(e, mySelection);
-         this.setState({
-           editorState: newEditor,
-           selection: s,
-           yourStyle: content.inlineStyle.highlight
-         })
-       }
-     })
-
+    // console.log("Emitting document event, ", this.props.id);
+    // socket.emit('document', {id: this.props.id, user: user, title: this.props.title});
+    // socket.emit('document', this.props.id);
+    // socket.emit('document', { document: this.props.doc, user: user, title: this.props.title, id: this.props.id, color: this.state.myColor });
+    // call in document portal front-end side
+    socket.on('document', (obj) => {
+      console.log('Color us: ', obj.color);
+      if (obj.doc.contents) {
+        this.setState({
+          document: obj.doc,
+          user: user,
+          // editors: obj.doc.editors,
+          editorState: EditorState.createWithContent(convertFromRaw({
+            entityMap: {},
+            blocks: obj.doc.contents.blocks,
+          })),
+          myColor: obj.color
+        })
+      } else {
+        this.setState({
+          document: obj.doc,
+          // editors: obj.editors,
+          myColor: obj.color
+        })
+      }
     });
 
-    socket.on('errorMessage', message => {
-      // YOUR CODE HERE (3)
-      console.log(message);
-      alert(message);
+    socket.on('leave', obj => {
+      // var array = this.state.editors.splice();
+      // var index = array.indexOf(obj.editor);
+      // array.splice(index, 1);
+      // this.setState({
+      //   editors: array
+      // })
+      this.props.toggle();
+      if (obj.message) {
+        alert(obj.message);
+      }
+    })
+
+    socket.on('editors', (editor) => {
+      var arr = this.state.editors.slice();
+      arr.push(editor);
+      console.log("MY ED: ", arr);
+      this.setState({
+        editors: arr
+      })
+    })
+
+    socket.on('history', (history) => {
+      console.log(history);
+      this.setState({ history });
     });
 
-    socket.on('disconnect', () => { console.log('ws disconnect'); });
+    socket.on('content', (content) => {
+
+     var c = convertFromRaw(content.contentState);
+     // console.log("C: ", c);
+     var selectionState = SelectionState.createEmpty();
+     var s = selectionState.merge(content.selectionState);
+     // console.log("S: ", s);
+     var mySelection = this.state.editorState.getSelection()
+     //making cursor
+     if (content.start === content.end) {
+
+       //find x and y of mouse
+
+       var e = EditorState.createWithContent(c);
+       var edit = this.updateSetState(EditorState.forceSelection(e, s));
+       var range = window.getSelection().getRangeAt(0);
+       // let range = document.createRange(selection);
+
+       this.updateSetState(EditorState.forceSelection(e, mySelection))
+       // console.log('selection', selection)
+
+       // range.selectNode(document.getElementById("editor"));
+       let rect = range.getBoundingClientRect();
+       // let rect = range.getClientRects();
+       console.log('rect', rect)
+
+       var modified = c;
+
+       //set div styles for cursor
+       this.setState({cursorStyle: {
+         top: rect.top, bottom: rect.bottom,
+         left: rect.left, right: rect.right,
+         width: '2px',
+         height: rect.height,
+         backgroundColor: content.color, position: 'absolute'
+       }})
+
+     } else {
+       var modified = Modifier.applyInlineStyle(c, s, content.inlineStyle.highlight);
+       // console.log("Content: ", modified);
+       var e = EditorState.createWithContent(modified);
+       // console.log("E", e);
+       // var s = this.state.editorState.getSelection();
+
+       var newEditor = EditorState.forceSelection(e, mySelection);
+       this.setState({
+         editorState: newEditor,
+         selection: s,
+         yourStyle: content.inlineStyle.highlight
+       })
+     }
+   })
+
+   socket.on('errorMessage', message => {
+     // YOUR CODE HERE (3)
+     console.log(message);
+     alert(message);
+   });
   }
+
+
 
   // Funtions
   makeEdit(value) {
@@ -201,7 +219,7 @@ export default class DocEditor extends React.Component {
 
     console.log("M: ", modified);
     // WILL CHANGE THE INLINESTYLE BE CONCAT BASED ON MYCOLOR
-    this.state.socket.emit('content', {
+    this.props.socket.emit('content', {
       contentState: convertToRaw(modified),
       selectionState: selectionState,
       inlineStyle: {cursor: `CURSOR${this.state.myColor}`, highlight: `HIGHLIGHT${this.state.myColor}`},
@@ -211,23 +229,11 @@ export default class DocEditor extends React.Component {
       color: this.state.myColor
     })
 
-    // Real-time Highlight changes
-    // this.state.socket.emit('highlight',
-    // {
-    //   contentState: convertToRaw(currentContent),
-    //   selectionState: selectionState,
-    //   inlineStyle: 'HIGHLIGHT'
-    // })
-
     this.setState({
       editorState,
     })
 
-    // selectedText.applyInlineStyle({
-    //   contentState: currentContent,
-    //   selectionState: selectionState,
-    //   inlineStyle: `backgroundColor: ${this.state.myColor}`
-    // })
+
   }
 
   save() {
@@ -236,13 +242,7 @@ export default class DocEditor extends React.Component {
     const doc = this.props.doc._id;
     const user = JSON.parse(localStorage.getItem('user'));
     // fetch post request: save
-    this.state.socket.emit('save', { content: convertToRaw(currentContent), id: this.props.doc._id, user });
-  }
-
-  handleSearch(e) {
-    this.setState({
-      search: e.target.value
-    })
+    this.props.socket.emit('save', { content: convertToRaw(currentContent), id: this.props.doc._id, user });
   }
 
   handleClose() {
@@ -255,83 +255,123 @@ export default class DocEditor extends React.Component {
 
   getHistory() {
     this.handleShow();
-    this.state.socket.emit('history', { docId: this.props.doc._id, title: this.props.title });
+    this.props.socket.emit('history', { docId: this.props.doc._id, title: this.props.title });
   }
 
 
-  search() {
-    var text = document.getElementById('editor').textContent;
-    text = text.split('');
-
-    var input = this.state.search.split('');
-    console.log('INPUT', input)
-
-    var found = false;
-    var index = 0;
-
-    // for (var i=0; i<text.length; i++){
-    //   for (var j=0; j<input.length; j++){
-    //     if (text[i] === input[j]){
-    //       found = true;
-    //       index =
-    //     }
-    //   }
-    // }
-    var index = 0;  // < input.length
-
-    var results = [];
-
-    for (var j = 0; j < text.length; j++) {
-      if (input[0] === text[j]) {
-        for (var i = 1; i < input.length; i++) {
-          if (input[i] === text[j]) {
-            if (i === input.length - 1) {
-              // save to the results array
-              // start and end => put them in a tuple and push it into an array
-            }
-            continue;
-          } else {
-            j += input.length
-            break;
-          }
+  generateDecorator(highlightTerm){
+    const regex = new RegExp(highlightTerm, 'g');
+    return new CompositeDecorator([{
+      strategy: (contentBlock, callback) => {
+        if (highlightTerm !== '') {
+          this.findWithRegex(regex, contentBlock, callback);
         }
-      }
+      },
+      component: this.SearchHighlight
+    }])
+  };
+
+  findWithRegex(regex, contentBlock, callback){
+    const text = contentBlock.getText();
+    let matchArr, start, end;
+    while ((matchArr = regex.exec(text)) !== null) {
+      start = matchArr.index;
+      end = start + matchArr[0].length;
+      callback(start, end);
+    }
+};
+
+  SearchHighlight(props) {
+    return <span style={{backgroundColor: 'yellow'}} className="search-and-replace">{props.children}</span>
+  }
+
+
+  onChangeSearch(e){
+      const search = e.target.value;
+      this.setState({
+        search,
+        editorState: EditorState.set(this.state.editorState, { decorator: this.generateDecorator(search) }),
+      });
     }
 
+  onChangeReplace(e) {
+    this.setState({
+      replace: e.target.value,
+    });
+  }
 
-    console.log(found)
-    //
-    // let selection = window.getSelection();
-    //
-    // var range = document.createRange();
-    // range.selectNode(text[0])
-    // selection.addRange(range)
-    // selection.addRange()
-    //
-    // console.log('selection', selectionRange)
+  onReplace(){
+    console.log(`replacing "${this.state.search}" with "${this.state.replace}"`);
+    const regex = new RegExp(this.state.search, 'g');
+    const { editorState } = this.state;
+    const selectionsToReplace = [];
+    const blockMap = editorState.getCurrentContent().getBlockMap();
 
+    blockMap.forEach((contentBlock) => (
+      this.findWithRegex(regex, contentBlock, (start, end) => {
+        const blockKey = contentBlock.getKey();
+        const blockSelection = SelectionState
+          .createEmpty(blockKey)
+          .merge({
+            anchorOffset: start,
+            focusOffset: end,
+          });
 
+        selectionsToReplace.push(blockSelection)
+      })
+    ));
+
+    let contentState = editorState.getCurrentContent();
+
+    selectionsToReplace.forEach(selectionState => {
+      contentState = Modifier.replaceText(
+        contentState,
+        selectionState,
+        this.state.replace,
+      )
+    });
+
+    this.setState({
+      editorState: EditorState.push(
+        editorState,
+        contentState,
+      )
+    })
+    //
+    // this.props.socket.emit('content', {
+    //   contentState: convertToRaw(contentState),
+    //   selectionState: selectionState,
+    //   inlineStyle: {cursor: `CURSOR${this.state.myColor}`, highlight: `HIGHLIGHT${this.state.myColor}`},
+    //   start: start,
+    //   end: end,
+    //   room: this.props.title,
+    //   color: this.state.myColor
+    // })
   }
 
   render() {
     // console.log('portal: ', this.state.docPortal);
     return (
       <div>
-        <button type="button" onClick={() => this.props.toggle(this.state.myColor)}>Back to Documents Portal</button>
+        <button type="button" onClick={() => this.props.toggle()}>Back to Documents Portal</button>
         <br />
         <h2>{this.props.doc.title}</h2>
         <br />
         <p>Shareable Document ID: {this.props.doc._id}</p>
         <p style={{ overflowY: 'scroll', maxHeight: 30 }}>Current editors: <ul>{this.state.editors.map(editor =>
-          (<li>{editor.username}</li>))}</ul></p>
-        <div>
+          (<li>{editor}</li>))}</ul></p>
+        <div className="search-and-replace">
           <input
-            type="text"
-            placeholder="Find in document"
-            onChange={e => this.handleSearch(e)}
             value={this.state.search}
+            onChange={this.onChangeSearch.bind(this)}
+            placeholder="Search..."
           />
-          <button type="button" onClick={() => this.search()} >Search</button>
+          <input
+            value={this.state.replace}
+            onChange={this.onChangeReplace.bind(this)}
+            placeholder="Replace..."
+          />
+          <button type="button" onClick={() => this.onReplace()} >Replace</button>
         </div>
         <button type="button" onClick={() => this.save()} >Save Changes</button>
         <button type="button" onClick={() => this.getHistory()} >History</button>

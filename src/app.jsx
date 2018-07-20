@@ -14,6 +14,7 @@ export default class App extends React.Component {
     this.state = {
       editorState: EditorState.createEmpty(),
       home: true,
+      socket: io('http://127.0.0.1:8080'),
     };
     this.onChange = editorState => this.setState({ editorState });
     this.handleKeyCommand = () => this.handleKeyCommand;
@@ -21,12 +22,9 @@ export default class App extends React.Component {
 
   componentDidMount() {
     // const socket = io('http://127.0.0.1:8080');
-    // socket.on('connect', () => { console.log('ws connect'); });
-    // socket.on('disconnect', () => { console.log('ws disconnect'); });
-    // socket.on('msg', (data) => {
-    //   console.log('ws msg:', data);
-    //   socket.emit('cmd', { foo: 123 });
-    // });
+    this.state.socket.on('connect', () => { console.log('ws connect'); });
+    this.state.socket.on('disconnect', () => { console.log('ws disconnect'); });
+
   }
 
   toDoc() {
@@ -39,7 +37,7 @@ export default class App extends React.Component {
     return (
       <div>
         {this.state.home ? <Home toDoc={() => this.toDoc()} /> :
-        <DocPortal toHome={() => this.toDoc()}/> }
+        <DocPortal toHome={() => this.toDoc()} socket={this.state.socket} /> }
       </div>
     );
   }
