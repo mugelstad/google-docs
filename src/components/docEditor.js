@@ -162,8 +162,12 @@ export default class DocEditor extends React.Component {
     clearInterval(this.autoSave);
   }
 
+<<<<<<< HEAD
 
   // Funtions
+=======
+  // Editor Style Funtions
+>>>>>>> 8dd016cc97ef6b96dd9a1920ea30982a71230fa9
   makeEdit(value) {
     this.onChange(RichUtils.toggleInlineStyle(this.state.editorState, value));
   }
@@ -232,7 +236,10 @@ export default class DocEditor extends React.Component {
       inlineStyle: {cursor: `CURSOR${this.state.myColor}`, highlight: `HIGHLIGHT${this.state.myColor}`},
       start: start,
       end: end,
+<<<<<<< HEAD
       room: this.props.title,
+=======
+>>>>>>> 8dd016cc97ef6b96dd9a1920ea30982a71230fa9
       color: this.state.myColor
     })
 
