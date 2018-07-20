@@ -23,7 +23,7 @@ export default class ToolBar extends React.Component {
   render() {
     return (
       <div style={{ marginTop:  20 }}>
-        <Navbar>
+        <Navbar xs={18} md={12}>
           <Navbar.Collapse>
             <Navbar.Form pullLeft>
               <FormGroup>

@@ -12,34 +12,36 @@ export default class EditorHeader extends React.Component{
     return (
       <div>
         <Row style={{ marginTop: 20 }}>
-          <Col xs={9} sm={9} md={9}>
+          <Col xs={12} sm={9} md={9}>
             <Button type="button" onClick={() => this.props.toggle()}>
               <Glyphicon glyph="arrow-left" /> Back to Documents Portal
             </Button>
           </Col>
-          <Col xs={3} sm={3} md={3}>
+          <Col xs={6} sm={3} md={3}>
             <Button bsStyle="primary" onClick={() => this.props.open()}>
               <Glyphicon glyph="share" /> Share Document
             </Button>
           </Col>
         </Row>
         <Row>
-          <Col xs={6} sm={6} md={6}><h2>{this.props.doc.title}</h2></Col>
+          <Col xs={9} sm={6} md={8}><h2>{this.props.doc.title}</h2></Col>
           <Col style={{ marginTop: 30 }}>
             {this.props.editors.map((editor) => {
-              // const color = this.props.colors[Math.floor(Math.random() * (this.props.colors).length)]
-              return (
-              <span style={{ marginRight: 5,
-                backgroundColor: 'green',
-                padding: 15,
-                borderRadius: 35,
-                border: '1px solid white',
-                color: 'white' }}
-                title={editor.username}
-              >
-                {editor.username.slice(0, 1)}
-              </span>
-            )
+              const color =
+               this.props.colors[Math.floor(Math.random() * (this.props.colors).length)]
+                return (
+                  <span style={{ marginRight: 5,
+                    backgroundColor: color,
+                    padding: 15,
+                    borderRadius: 45,
+                    border: '1px solid white',
+                    color: 'white',
+                    width: 40 }}
+                    title={editor.username}
+                  >
+                    {editor.username.slice(0, 1).toUpperCase()}
+                  </span>
+                );
             }
         )}
           </Col>

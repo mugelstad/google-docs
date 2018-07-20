@@ -55,7 +55,7 @@ export default class DocHistory extends React.Component {
           <Modal.Body>
             <Grid>
               <Row className="show-grid">
-                <Col xs={6} sm={6} md={7}>
+                <Col xs={12} sm={6} md={7}>
                   <Row
                     className="show-grid"
                     style={{
@@ -99,7 +99,7 @@ export default class DocHistory extends React.Component {
                         </div>
                       }
                     </Col>
-                    <Col xs={9} sm={5} md={6}>
+                    <Col xs={9} sm={5} md={6} style={{ borderLeft: '1px dashed gray' }}>
                       <h4>Removed</h4>
                       {this.state.before && this.state.before.length > 0 ?
                         <Editor
@@ -119,7 +119,7 @@ export default class DocHistory extends React.Component {
                   </Row>
 
                 </Col>
-                <Col xs={3} sm={3} md={3} style={{ overflowY: 'scroll', maxHeight: 500 }}>
+                <Col xs={12} sm={3} md={2} style={{ overflowY: 'scroll', maxHeight: 500 }}>
                   {(this.state.revisions ? this.state.revisions : this.props.revisions.reverse()).map((doc, index) => {
                     return (
                       <Alert

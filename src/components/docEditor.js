@@ -340,8 +340,8 @@ export default class DocEditor extends React.Component {
             getHistory={() => this.getHistory()}
           />
         </div>
-        <div id="editor" style={{ backgroundColor: '#cfcfcf', textAlign: this.state.align, marginLeft: -50, marginRight: -40, paddingTop: 50, overflowY: 'scroll', maxHeight: 360 }}>
-          <div style={{ backgroundColor: 'white', border: '1px solid #a9a9a9', margin: 50, padding: 30, paddingTop: 40 }}>
+        <div id="editor" style={{ backgroundColor: '#dfdfdf', textAlign: this.state.align, marginLeft: -50, marginRight: -40, paddingTop: 50, overflowY: 'scroll', maxHeight: 360 }}>
+          <div style={{ backgroundColor: 'white', border: '1px solid #a9a9a9', margin: 50, padding: 60, paddingTop: 80 }}>
             <Editor
               editorState={this.state.editorState}
               onChange={this.onChange.bind(this)}
