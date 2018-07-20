@@ -212,7 +212,7 @@ export default class DocEditor extends React.Component {
   autosave() {
     const currentContent = convertToRaw(this.state.editorState.getCurrentContent());
     if (!this.sameContent(currentContent.blocks,
-      this.state.document.history[this.state.document.history.length - 1].blocks)) {
+      this.state.document.history[this.state.document.history.length - 1].blocks).different) {
       this.save();
     } else {
       console.log('Same COnetnet');
@@ -266,7 +266,21 @@ export default class DocEditor extends React.Component {
           .reduce((a, b) => a && b) : true)
       )));
 
-    return checks.reduce((a, b) => a && b);
+  let diffs = {
+    after: [],
+    before: [],
+  };
+    checks.forEach((item, index) => {
+      if (!item) {
+        diffs.before.push(blocksA[index]);
+        diffs.after.push(blocksB[index]);
+      }
+    });
+
+    return {
+      different: checks.reduce((a, b) => a && b),
+      differences: diffs,
+    };
   }
 
   search() {
@@ -351,6 +365,7 @@ export default class DocEditor extends React.Component {
           title={this.props.doc.title}
           hide={() => this.handleClose()}
           doc={this.props.doc}
+          areDifferent={(a,b) => this.sameContent(a, b)}
         /> : <div />}
       </div>
     );

@@ -18,12 +18,26 @@ export default class DocHistory extends React.Component {
     this.setState({ currVersion: this.props.revisions[0] });
   }
 
-  restore(){
-
-  }
+  // restore() {
+  //
+  // }
 
   selectVersion(index) {
-    this.setState({ currVersion: this.state.revisions[index], index });
+    console.log(this.state.revisions[index + 1].blocks)
+    console.log(this.state.revisions[index].blocks)
+    if (index < this.state.revisions.length - 1 && this.state.revisions) {
+      const diff = this.props.areDifferent(
+        this.state.revisions[index + 1].blocks,
+      this.state.revisions[index].blocks).differences;
+      this.setState({ before: diff.before,
+        after: diff.after,
+        currVersion: this.state.revisions[index],
+        index });
+        // this.setState({
+        //   currVersion: this.state.revisions[index],
+        //   index });
+      console.log(diff.before, diff.after)
+    }
   }
 
   render() {
@@ -71,9 +85,35 @@ export default class DocHistory extends React.Component {
                   <Row className="show-grid" style={{ textAlign: 'center' }}>
                     <Col xs={9} sm={5} md={6}>
                       <h4>Added</h4>
+                      {this.state.after && this.state.after.length > 0 ?
+                        <Editor
+                          editorState={EditorState.createWithContent(convertFromRaw({
+                            entityMap: {},
+                            blocks: this.state.after,
+                          }))}
+                          customStyleMap={styleMap}
+                          readOnly
+                        />
+                        : <div>
+                          No changes
+                        </div>
+                      }
                     </Col>
                     <Col xs={9} sm={5} md={6}>
                       <h4>Removed</h4>
+                      {this.state.before && this.state.before.length > 0 ?
+                        <Editor
+                          editorState={EditorState.createWithContent(convertFromRaw({
+                            entityMap: {},
+                            blocks: this.state.before,
+                          }))}
+                          customStyleMap={styleMap}
+                          readOnly
+                        />
+                        : <div>
+                          No changes
+                        </div>
+                      }
                     </Col>
 
                   </Row>
