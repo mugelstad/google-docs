@@ -5,6 +5,13 @@ import { Glyphicon, Button, ButtonGroup } from 'react-bootstrap';
 export default class DocumentList extends React.Component{
   constructor(props){
     super(props);
+    this.state = {
+      showLastUpdate: false,
+    };
+  }
+
+  showLastUpdate() {
+    this.setState({ showLastUpdate: !this.state.showLastUpdate });
   }
 
   render() {
@@ -14,21 +21,33 @@ export default class DocumentList extends React.Component{
         width: 10000,
         marginLeft: -50,
         paddingLeft: 50,
-        paddingTop: 30 }}
+        paddingTop: 30,
+        height: 1000 }}
       >
-        {this.props.documents.map(doc =>
-          (<ButtonGroup
-            vertical
-            onClick={() => this.props.view(doc._id)}
-            style={{ marginRight: 20, width: 100, height: 200 }}
-          >
-            <Button style={{ height: 100 }}>
-              <Glyphicon glyph="file" />
-              <hr />
-              <p>{doc.title}</p>
-            </Button>
-          </ButtonGroup>)
-        )}
+        {this.props.documents.map((doc) =>
+          (
+            <ButtonGroup
+              vertical
+              onClick={() => this.props.view(doc._id)}
+              style={{ marginRight: 20, width: 150 }}
+              onMouseEnter={() => this.showLastUpdate()}
+            >
+              <Button style={{ height: 150 }}>
+                <Glyphicon glyph="file" />
+                <hr />
+                <p>{doc.title}</p>
+                {doc.history && doc.history.length > 0 ?
+                  <div>
+                    <p style={{ fontSize: 10 }}>Last Update by {doc.history[doc.history.length - 1].user.username}</p>
+                    <p style={{ fontSize: 10 }}>On {new Date(doc.history[doc.history.length - 1].time).toDateString()}</p>
+                  </div> :
+                  <p style={{ fontSize: 10 }}>No recent Changes</p>
+                }
+              </Button>
+            </ButtonGroup>
+            )
+          )
+        }
       </div>
 
     )
