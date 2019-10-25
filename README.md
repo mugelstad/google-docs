@@ -48,5 +48,5 @@
 <h3><a href="https://vimeo.com/281367961#t=20s">Video Demo </a></h3>
 
 <h3>Authors</h3>
-<p><a href="https://github.com/mugelstad">Maggie Ulstead</a></p>
+<p><a href="https://github.com/mugelstad">Maggie Ugelstad</a></p>
 <p><a href="https://github.com/celia96">Celia Choy</a></p>
