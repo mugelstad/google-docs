@@ -1,4 +1,4 @@
-# google-docs
+# realtime-text-editor
 
 <h3>Overview</h3>
 <p>This is a Collaborative text editor with document creation and sharing implemented in <a href="https://electronjs.org/">Electron</a> by a three woman team.</p>
